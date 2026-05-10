@@ -22,7 +22,6 @@ import com.atchurey.talkativebot.springbootstarter.channels.InputChannelLifecycl
 import com.atchurey.talkativebot.springbootstarter.configs.properties.SpringBootTalkativebotProperties;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -119,14 +118,6 @@ public class TalkativeBotAutoConfiguration {
     @ConditionalOnMissingBean
     public TopicFactory topicFactory(ApplicationContext applicationContext) {
         return new SpringTopicFactory(applicationContext);
-    }
-
-    @Bean
-    @ConditionalOnMissingBean(name = "talkativeInputChannelRunner")
-    public ApplicationRunner talkativeInputChannelRunner(
-            TalkativeBot talkativeBot,
-            List<InputChannel> inputChannels) {
-        return args -> inputChannels.forEach(inputChannel -> inputChannel.start(talkativeBot));
     }
 
     @Bean
