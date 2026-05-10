@@ -1,17 +1,21 @@
 package com.atchurey.talkativebot.springbootstarter.configs.properties;
 
 import com.atchurey.talkativebot.core.channel.ConversationAddress;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
 
 import java.time.Duration;
 
 @Setter
 @Getter
 @ConfigurationProperties("atchurey.talkativebot")
+@Validated
 public class SpringBootTalkativebotProperties {
     private String hello;
+    @NotNull
     private String topicBasePackage;
     private Channels channels = new Channels();
     private PendingInteraction pendingInteraction = new PendingInteraction();

@@ -2,14 +2,15 @@ package com.atchurey.talkativebot.core.conversation;
 
 import com.atchurey.talkativebot.core.bot.TalkativeBot;
 import com.atchurey.talkativebot.core.channel.ConversationAddress;
-import org.springframework.beans.factory.ObjectProvider;
+
+import java.util.function.Supplier;
 
 public class ReflectionConversationFactory implements ConversationFactory {
 
-    private final ObjectProvider<TalkativeBot> botProvider;
+    private final Supplier<TalkativeBot> botSupplier;
 
-    public ReflectionConversationFactory(ObjectProvider<TalkativeBot> botProvider) {
-        this.botProvider = botProvider;
+    public ReflectionConversationFactory(Supplier<TalkativeBot> botSupplier) {
+        this.botSupplier = botSupplier;
     }
 
     @Override
@@ -23,7 +24,7 @@ public class ReflectionConversationFactory implements ConversationFactory {
 
             return (Conversation<?>) type
                     .getConstructor(TalkativeBot.class, ConversationAddress.class)
-                    .newInstance(botProvider.getObject(), address);
+                    .newInstance(botSupplier.get(), address);
         } catch (ReflectiveOperationException exception) {
             throw new IllegalStateException("Could not create conversation " + conversationType, exception);
         }
