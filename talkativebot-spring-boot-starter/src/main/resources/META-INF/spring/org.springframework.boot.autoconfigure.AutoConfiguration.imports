@@ -1,0 +1,4 @@
+com.atchurey.tools.talkative.configs.TalkativeBotAutoConfiguration
+com.atchurey.tools.talkative.configs.TalkativeBotRedisAutoConfiguration
+com.atchurey.tools.talkative.configs.TalkativeBotJpaAutoConfiguration
+com.atchurey.tools.talkative.configs.TalkativeBotConsoleAutoConfiguration
