@@ -11,7 +11,7 @@
 	<artifactId>talkativebot-core</artifactId>
 	<name>talkativebot-core</name>
 	<packaging>jar</packaging>
-	<description>Pure java library for building and playing conversation flows</description>
+	<description>Java library for building and playing conversation flows</description>
 	<url>https://github.com/atchurey/talkativebot</url>
 
 	<dependencies>

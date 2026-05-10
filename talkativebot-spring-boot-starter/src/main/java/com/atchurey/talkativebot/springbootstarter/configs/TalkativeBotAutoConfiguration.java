@@ -105,7 +105,7 @@ public class TalkativeBotAutoConfiguration {
     public ConversationFactory conversationFactory(
             ObjectProvider<TalkativeBot> talkativeBotProvider) {
 
-        return new ReflectionConversationFactory(talkativeBotProvider);
+        return new ReflectionConversationFactory(talkativeBotProvider::getObject);
     }
 
     @Bean
