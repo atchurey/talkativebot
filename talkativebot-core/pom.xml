@@ -4,32 +4,15 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>io.github.atchurey</groupId>
-		<artifactId>talkativebot</artifactId>
-		<version>1.2-SNAPSHOT</version>
+		<groupId>com.atchurey.tools</groupId>
+		<artifactId>talkativebot-parent</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>talkativebot-core</artifactId>
 	<packaging>jar</packaging>
 	<description>Pure java library for building and playing conversation flows</description>
-
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
-
-	<properties>
-		<java.version>17</java.version>
-	</properties>
+	<url>https://github.com/atchurey/talkativebot</url>
 
 	<dependencies>
 		<dependency>

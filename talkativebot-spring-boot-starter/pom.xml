@@ -4,28 +4,20 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>io.github.atchurey</groupId>
-		<artifactId>talkativebot</artifactId>
-		<version>1.2-SNAPSHOT</version>
+		<groupId>com.atchurey.tools</groupId>
+		<artifactId>talkativebot-parent</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>talkativebot-spring-boot-starter</artifactId>
 	<packaging>jar</packaging>
 	<description>A Spring Boot starter for talkativebot</description>
-
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
+	<url>https://github.com/atchurey/talkativebot</url>
 
 	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
+		<connection>scm:git:git@github.com:atchurey/talkativebot.git</connection>
+		<developerConnection>scm:git:ssh://github.com:atchurey/talkativebot.git</developerConnection>
+		<url>https://github.com/atchurey/talkativebot/tree/master</url>
 	</scm>
 
 	<properties>
@@ -90,17 +82,8 @@
 		<dependency>
 			<groupId>io.github.atchurey</groupId>
 			<artifactId>talkativebot-core</artifactId>
-			<version>1.2-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-		</plugins>
-	</build>
 
 </project>
