@@ -9,6 +9,7 @@
 	</parent>
 
 	<artifactId>talkativebot-spring-boot-starter</artifactId>
+	<name>talkativebot-spring-boot-starter</name>
 	<packaging>jar</packaging>
 	<description>A Spring Boot starter for talkativebot</description>
 	<url>https://github.com/atchurey/talkativebot</url>
