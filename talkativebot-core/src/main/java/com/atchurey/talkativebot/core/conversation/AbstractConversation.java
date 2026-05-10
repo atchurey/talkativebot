@@ -8,9 +8,9 @@ import com.atchurey.talkativebot.core.topic.TopicDescriptor;
 import com.atchurey.talkativebot.core.topic.TopicFactory;
 import com.atchurey.talkativebot.core.topic.TopicScanner;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.StringUtils;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -82,7 +82,7 @@ public abstract class AbstractConversation<T> implements Conversation<T> {
             conversationAwareTopic.setConversation(this);
         }
 
-        if (!StringUtils.hasText(topic.getKey())) {
+        if (!StringUtils.isNotBlank(topic.getKey())) {
             throw new IllegalArgumentException("ConversationTopic key must not be blank: " + topic.getClass().getName());
         }
 
@@ -161,7 +161,7 @@ public abstract class AbstractConversation<T> implements Conversation<T> {
 
         String nextTopicKey = currentTopic.getNextTopicKey();
 
-        if (!StringUtils.hasText(nextTopicKey)) {
+        if (!StringUtils.isNotBlank(nextTopicKey)) {
             return null;
         }
 
