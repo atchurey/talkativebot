@@ -1,6 +1,6 @@
 package com.atchurey.tools.talkativebot.springbootstarter.configs;
 
-import com.atchurey.tools.talkativebot.core.bot.Talkativebot;
+import com.atchurey.tools.talkativebot.core.bot.TalkativeBot;
 import com.atchurey.tools.talkativebot.core.channel.ConversationAddress;
 import com.atchurey.tools.talkativebot.core.channel.ConversationStartRegistry;
 import com.atchurey.tools.talkativebot.core.channel.ConversationStartResolver;
@@ -10,7 +10,7 @@ import com.atchurey.tools.talkativebot.core.channel.OptionSelector;
 import com.atchurey.tools.talkativebot.core.channel.OutputChannel;
 import com.atchurey.tools.talkativebot.core.channel.OutputChannelRegistry;
 import com.atchurey.tools.talkativebot.core.channel.PendingInteractionStore;
-import com.atchurey.tools.talkativebot.core.configs.TalkativebotProperties;
+import com.atchurey.tools.talkativebot.core.configs.TalkativeBotProperties;
 import com.atchurey.tools.talkativebot.core.conversation.ConversationFactory;
 import com.atchurey.tools.talkativebot.core.conversation.ReflectionConversationFactory;
 import com.atchurey.tools.talkativebot.springbootstarter.topic.SpringTopicFactory;
@@ -19,9 +19,8 @@ import com.atchurey.tools.talkativebot.core.topic.TopicFactory;
 import com.atchurey.tools.talkativebot.core.topic.TopicScanner;
 import com.atchurey.tools.talkativebot.core.store.InMemoryPendingInteractionStore;
 import com.atchurey.tools.talkativebot.springbootstarter.channels.InputChannelLifecycle;
-import com.atchurey.tools.talkativebot.springbootstarter.configs.properties.SpringBootTalkativebotProperties;
+import com.atchurey.tools.talkativebot.springbootstarter.configs.properties.SpringBootTalkativeBotProperties;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -33,23 +32,20 @@ import org.springframework.context.annotation.Bean;
 import java.util.List;
 
 @AutoConfiguration
-@ConditionalOnClass(Talkativebot.class)
-@EnableConfigurationProperties(SpringBootTalkativebotProperties.class)
-public class TalkativebotAutoConfiguration {
-
-    @Autowired
-    SpringBootTalkativebotProperties springBootTalkativebotProperties;
+@ConditionalOnClass(TalkativeBot.class)
+@EnableConfigurationProperties(SpringBootTalkativeBotProperties.class)
+public class TalkativeBotAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public TalkativebotProperties provideTalkativebotProperties() {
+    public TalkativeBotProperties provideTalkativebotProperties(SpringBootTalkativeBotProperties springBootTalkativebotProperties) {
         try {
-            // Transfer properties from Spring Boot properties to core TalkativebotProperties
-            TalkativebotProperties talkativebotProperties = new TalkativebotProperties();
+            // Transfer properties from Spring Boot properties to core TalkativeBotProperties
+            TalkativeBotProperties talkativebotProperties = new TalkativeBotProperties();
             talkativebotProperties.setHello(springBootTalkativebotProperties.getHello());
             talkativebotProperties.setTopicBasePackage(springBootTalkativebotProperties.getTopicBasePackage());
 
-            TalkativebotProperties.Channels channels = new TalkativebotProperties.Channels();
+            TalkativeBotProperties.Channels channels = new TalkativeBotProperties.Channels();
             channels.setEnabled(springBootTalkativebotProperties.getChannels().isEnabled());
             channels.setConsoleEnabled(springBootTalkativebotProperties.getChannels().isConsoleEnabled());
             ConversationAddress consoleAddress = springBootTalkativebotProperties.getChannels().getConsoleAddress() != null ?
@@ -58,8 +54,8 @@ public class TalkativebotAutoConfiguration {
             talkativebotProperties.setChannels(channels);
 
 
-            TalkativebotProperties.PendingInteraction pendingInteraction = new TalkativebotProperties.PendingInteraction();
-            pendingInteraction.setStore(TalkativebotProperties.PendingInteraction.StoreType.valueOf(springBootTalkativebotProperties.getPendingInteraction().getStore().name()));
+            TalkativeBotProperties.PendingInteraction pendingInteraction = new TalkativeBotProperties.PendingInteraction();
+            pendingInteraction.setStore(TalkativeBotProperties.PendingInteraction.StoreType.valueOf(springBootTalkativebotProperties.getPendingInteraction().getStore().name()));
             pendingInteraction.setTtl(springBootTalkativebotProperties.getPendingInteraction().getTtl());
             talkativebotProperties.setPendingInteraction(pendingInteraction);
 
@@ -103,14 +99,14 @@ public class TalkativebotAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public ConversationFactory conversationFactory(
-            ObjectProvider<Talkativebot> talkativeBotProvider) {
+            ObjectProvider<TalkativeBot> talkativeBotProvider) {
 
         return new ReflectionConversationFactory(talkativeBotProvider::getObject);
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public TopicScanner topicScanner(SpringBootTalkativebotProperties properties) {
+    public TopicScanner topicScanner(SpringBootTalkativeBotProperties properties) {
         return new SpringTopicScanner(properties.getTopicBasePackage());
     }
 
@@ -129,7 +125,7 @@ public class TalkativebotAutoConfiguration {
             matchIfMissing = true
     )
     public InputChannelLifecycle inputChannelLifecycle(
-            Talkativebot talkativeBot,
+            TalkativeBot talkativeBot,
             List<InputChannel> inputChannels) {
         return new InputChannelLifecycle(talkativeBot, inputChannels);
     }
@@ -166,7 +162,7 @@ public class TalkativebotAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public Talkativebot talkativeBot(TalkativebotProperties properties,
+    public TalkativeBot talkativeBot(TalkativeBotProperties properties,
                                      PendingInteractionStore pendingInteractionStore,
                                      TopicScanner topicScanner,
                                      TopicFactory topicFactory,
@@ -174,7 +170,7 @@ public class TalkativebotAutoConfiguration {
                                      OptionSelector optionSelector,
                                      ConversationFactory conversationFactory,
                                      ConversationStartRegistry conversationStartRegistry) {
-        return new Talkativebot(
+        return new TalkativeBot(
                 properties,
                 pendingInteractionStore,
                 topicScanner,

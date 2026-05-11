@@ -1,10 +1,10 @@
 package com.atchurey.tools.talkativebot.springbootstarter;
 
-import com.atchurey.tools.talkativebot.core.bot.Talkativebot;
-import com.atchurey.tools.talkativebot.core.configs.TalkativebotProperties;
-import com.atchurey.tools.talkativebot.springbootstarter.configs.TalkativebotAutoConfiguration;
+import com.atchurey.tools.talkativebot.core.bot.TalkativeBot;
+import com.atchurey.tools.talkativebot.core.configs.TalkativeBotProperties;
+import com.atchurey.tools.talkativebot.springbootstarter.configs.TalkativeBotAutoConfiguration;
 
-import com.atchurey.tools.talkativebot.springbootstarter.configs.properties.SpringBootTalkativebotProperties;
+import com.atchurey.tools.talkativebot.springbootstarter.configs.properties.SpringBootTalkativeBotProperties;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
 
@@ -15,15 +15,15 @@ import org.springframework.test.context.ContextConfiguration;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @SpringBootTest
-@ContextConfiguration(classes = {TalkativebotAutoConfiguration.class})
-public class TalkativebotPropertyTest {
+@ContextConfiguration(classes = {TalkativeBotAutoConfiguration.class})
+public class TalkativeBotPropertyTest {
 
     @Autowired
-    private TalkativebotProperties talkativebotProperties;
+    private TalkativeBotProperties talkativebotProperties;
     @Autowired
-    private SpringBootTalkativebotProperties springBootTalkativebotProperties;
+    private SpringBootTalkativeBotProperties springBootTalkativebotProperties;
     @Autowired
-    private Talkativebot talkativeBot;
+    private TalkativeBot talkativeBot;
 
     @Test
     public void contextLoads() {
@@ -79,7 +79,7 @@ public class TalkativebotPropertyTest {
                         .isNotNull();
 
                 assertThat(pi.getTtl()).isEqualTo(springBootTalkativebotProperties.getPendingInteraction().getTtl());
-                assertThat(pi.getStore()).isEqualTo(TalkativebotProperties.PendingInteraction.StoreType.valueOf(springBootTalkativebotProperties.getPendingInteraction().getStore().name()));
+                assertThat(pi.getStore()).isEqualTo(TalkativeBotProperties.PendingInteraction.StoreType.valueOf(springBootTalkativebotProperties.getPendingInteraction().getStore().name()));
             }
         });
     }

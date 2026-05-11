@@ -1,6 +1,6 @@
 package com.atchurey.tools.talkativebot.core.conversation;
 
-import com.atchurey.tools.talkativebot.core.bot.Talkativebot;
+import com.atchurey.tools.talkativebot.core.bot.TalkativeBot;
 import com.atchurey.tools.talkativebot.core.channel.ConversationAddress;
 import com.atchurey.tools.talkativebot.core.topic.ConversationAwareTopic;
 import com.atchurey.tools.talkativebot.core.topic.ConversationTopic;
@@ -28,7 +28,7 @@ public abstract class AbstractConversation<T> implements Conversation<T> {
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Getter
-    protected final Talkativebot bot;
+    protected final TalkativeBot bot;
 
     private final Facts facts = new Facts();
 
@@ -42,14 +42,14 @@ public abstract class AbstractConversation<T> implements Conversation<T> {
 
     private boolean abandoned;
 
-    protected AbstractConversation(Talkativebot bot, ConversationAddress address) {
+    protected AbstractConversation(TalkativeBot bot, ConversationAddress address) {
         this.bot = Objects.requireNonNull(bot, "bot must not be null");
         this.address = Objects.requireNonNull(address, "address must not be null");
         discoverTopics(bot.getTopicScanner(), bot.getTopicFactory());
     }
 
     protected AbstractConversation(
-            Talkativebot bot,
+            TalkativeBot bot,
             ConversationAddress address,
             TopicScanner topicScanner,
             TopicFactory topicFactory

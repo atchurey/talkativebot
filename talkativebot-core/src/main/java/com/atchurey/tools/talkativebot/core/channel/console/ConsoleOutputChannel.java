@@ -22,7 +22,7 @@ public class ConsoleOutputChannel implements OutputChannel {
     @Override
     public CompletableFuture<Void> send(OutgoingMessage message) {
         if (message.isQuestion()) {
-
+            System.out.println(message.getQuestion().getText());
             if (message.getQuestion().isChoice()) {
                 for (Option option : message.getQuestion().getOptions()) {
                     System.out.printf("%d. %s%n", option.getValue(), option.getText());

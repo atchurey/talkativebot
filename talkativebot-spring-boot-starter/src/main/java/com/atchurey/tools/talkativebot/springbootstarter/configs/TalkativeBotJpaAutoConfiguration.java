@@ -15,14 +15,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-@AutoConfiguration(before = TalkativebotAutoConfiguration.class)
+@AutoConfiguration(before = TalkativeBotAutoConfiguration.class)
 @ConditionalOnClass({
         EntityManager.class,
         JpaRepository.class,
 })
 @EntityScan(basePackageClasses = { PendingInteractionEntity.class})
 @EnableJpaRepositories(basePackageClasses = { JpaPendingInteractionRepository.class })
-public class TalkativebotJpaAutoConfiguration {
+public class TalkativeBotJpaAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(PendingInteractionStore.class)

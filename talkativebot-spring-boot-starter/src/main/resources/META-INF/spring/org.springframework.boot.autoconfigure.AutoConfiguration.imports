@@ -1,4 +1,4 @@
-com.atchurey.tools.talkativebot.springbootstarter.configs.TalkativebotAutoConfiguration
-com.atchurey.tools.talkativebot.springbootstarter.configs.TalkativebotRedisAutoConfiguration
-com.atchurey.tools.talkativebot.springbootstarter.configs.TalkativebotJpaAutoConfiguration
-com.atchurey.tools.talkativebot.springbootstarter.configs.TalkativebotConsoleAutoConfiguration
+com.atchurey.tools.talkativebot.springbootstarter.configs.TalkativeBotAutoConfiguration
+com.atchurey.tools.talkativebot.springbootstarter.configs.TalkativeBotRedisAutoConfiguration
+com.atchurey.tools.talkativebot.springbootstarter.configs.TalkativeBotJpaAutoConfiguration
+com.atchurey.tools.talkativebot.springbootstarter.configs.TalkativeBotConsoleAutoConfiguration

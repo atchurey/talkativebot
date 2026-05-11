@@ -1,6 +1,6 @@
-# `Talkativebot`
+# `TalkativeBot`
 
-`Talkativebot` is a Java 17 / Spring Boot 3 library for building stateful conversation flows across multiple channels.
+`TalkativeBot` is a Java 17 / Spring Boot 3 library for building stateful conversation flows across multiple channels.
 
 ## Why?
 
@@ -19,11 +19,11 @@ Many business flows eventually need human interaction:
 If this logic is handled directly inside controllers, services, message consumers, or bot-specific integrations, the application quickly becomes coupled to a particular channel or provider.
 Do not shoot yourself in the foot in your attempt to bring AI capabilities to your users by messing up your already complex business logic.
 
-`Talkativebot` provides a conversation orchestration layer between your application and the bot engines, messaging platforms, and AI tools around it.
+`TalkativeBot` provides a conversation orchestration layer between your application and the bot engines, messaging platforms, and AI tools around it.
 
 Wherever your business flow needs human input, you can delegate that interaction to a bot while keeping your core application logic independent from the transport layer.
 
-``Talkativebot`` helps you model the interaction as a conversation:
+``TalkativeBot`` helps you model the interaction as a conversation:
 
 - ask a question
 - wait for an answer
@@ -32,7 +32,7 @@ Wherever your business flow needs human input, you can delegate that interaction
 - route messages through the appropriate channel
 
 The goal is not to replace AI engines or chat platforms. The goal is to give your application a predictable layer for managing conversations across them.
-`Talkativebot` provides these abstractions without tying your conversation logic to a specific transport.
+`TalkativeBot` provides these abstractions without tying your conversation logic to a specific transport.
 
 ## Modules
 
@@ -81,7 +81,7 @@ atchurey.tools.talkativebot.topic-base-package=com.example.basepackage
 atchurey.tools.talkativebot.channels.enabled=true
 atchurey.tools.talkativebot.channels.console-enabled=true
 ```
-> **Important:** Configure `atchurey.talkativebot.tools.topic-base-package`
+> **Important:** Configure `atchurey.tools.talkativebot.topic-base-package`
 > to enable topic scanning.
 
 ## Persistence Options
@@ -91,10 +91,10 @@ atchurey.tools.talkativebot.channels.console-enabled=true
 3. `jpa` - JPA store.
 
 ## Quick Start
-Manually play a conversation by calling `Talkativebot.play(...)`.
+Manually play a conversation by calling `TalkativeBot.play(...)`.
 ```java
 @Autowired
-Talkativebot talkativebot;
+TalkativeBot talkativebot;
 
 ConversationAddress consoleAddress = new ConversationAddress(
 		"console",
@@ -141,7 +141,7 @@ override the `onConversationClosed` callback,
 ```java
 public class SaleConversation extends AbstractConversation<String> {
 
-    public SaleConversation(`Talkativebot` bot, ConversationAddress address) {
+    public SaleConversation(`TalkativeBot` bot, ConversationAddress address) {
         super(bot, address);
     }
 

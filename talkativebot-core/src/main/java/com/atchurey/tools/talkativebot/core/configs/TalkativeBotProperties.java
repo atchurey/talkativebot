@@ -8,7 +8,7 @@ import lombok.Setter;
 import java.time.Duration;
 
 @Data
-public class TalkativebotProperties {
+public class TalkativeBotProperties {
     private String hello;
     private String topicBasePackage;
     private Channels channels = new Channels();

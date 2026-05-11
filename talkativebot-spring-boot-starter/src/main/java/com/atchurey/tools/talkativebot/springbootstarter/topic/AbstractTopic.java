@@ -1,6 +1,6 @@
 package com.atchurey.tools.talkativebot.springbootstarter.topic;
 
-import com.atchurey.tools.talkativebot.core.bot.Talkativebot;
+import com.atchurey.tools.talkativebot.core.bot.TalkativeBot;
 import com.atchurey.tools.talkativebot.core.channel.SelectedAnswer;
 import com.atchurey.tools.talkativebot.core.conversation.AbstractConversation;
 import com.atchurey.tools.talkativebot.core.conversation.Conversation;
@@ -43,7 +43,7 @@ public abstract class AbstractTopic implements ConversationTopic, ConversationAw
         this.conversation = conversation;
     }
 
-    @Override
+	@Override
     public String getKey() {
         Topic context = topicContext();
 
@@ -208,12 +208,12 @@ public abstract class AbstractTopic implements ConversationTopic, ConversationAw
         conversation.getFacts().put(name, value);
     }
 
-    protected Talkativebot getBot() {
+    protected TalkativeBot getBot() {
         if (conversation instanceof AbstractConversation<?> abstractConversation) {
             return abstractConversation.getBot();
         }
 
-        throw new IllegalStateException("Conversation does not expose Talkativebot: " + conversation);
+        throw new IllegalStateException("Conversation does not expose TalkativeBot: " + conversation);
     }
 
     private Topic topicContext() {
@@ -240,5 +240,9 @@ public abstract class AbstractTopic implements ConversationTopic, ConversationAw
 
     protected CompletableFuture<String> reply(String text) {
         return getBot().reply(text);
+    }
+
+    protected void abandonConversation() {
+        this.conversation.abandon();
     }
 }

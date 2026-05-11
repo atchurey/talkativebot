@@ -11,9 +11,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.core.RedisOperations;
 
-@AutoConfiguration(before = TalkativebotAutoConfiguration.class)
+@AutoConfiguration(before = TalkativeBotAutoConfiguration.class)
 @ConditionalOnClass(RedisOperations.class)
-public class TalkativebotRedisAutoConfiguration {
+public class TalkativeBotRedisAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(PendingInteractionStore.class)

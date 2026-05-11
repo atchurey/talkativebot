@@ -1,6 +1,6 @@
 package com.atchurey.tools.talkativebot.core.bot;
 
-import com.atchurey.tools.talkativebot.core.configs.TalkativebotProperties;
+import com.atchurey.tools.talkativebot.core.configs.TalkativeBotProperties;
 import com.atchurey.tools.talkativebot.core.channel.ConversationStartRegistry;
 import com.atchurey.tools.talkativebot.core.channel.ConversationStartRequest;
 import com.atchurey.tools.talkativebot.core.channel.IncomingMessage;
@@ -24,7 +24,7 @@ import lombok.Getter;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 
-public class Talkativebot implements InputMessageHandler {
+public class TalkativeBot implements InputMessageHandler {
 
     @Getter
     private final TopicScanner topicScanner;
@@ -32,7 +32,7 @@ public class Talkativebot implements InputMessageHandler {
     @Getter
     private final TopicFactory topicFactory;
 
-    private final TalkativebotProperties botProperties;
+    private final TalkativeBotProperties botProperties;
     private final PendingInteractionStore pendingInteractionStore;
     private final OutputChannelRegistry outputChannelRegistry;
     private final OptionSelector optionSelector;
@@ -40,8 +40,8 @@ public class Talkativebot implements InputMessageHandler {
     private final Duration pendingInteractionTtl;
     private final ConversationStartRegistry conversationStartRegistry;
 
-    public Talkativebot(
-            TalkativebotProperties botProperties,
+    public TalkativeBot(
+            TalkativeBotProperties botProperties,
             PendingInteractionStore pendingInteractionStore,
             TopicScanner topicScanner,
             TopicFactory topicFactory,
@@ -61,7 +61,7 @@ public class Talkativebot implements InputMessageHandler {
         this.conversationStartRegistry = conversationStartRegistry;
     }
 
-    public TalkativebotProperties getBotConfigProperties() {
+    public TalkativeBotProperties getBotConfigProperties() {
         return botProperties;
     }
 

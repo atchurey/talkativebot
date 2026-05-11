@@ -62,6 +62,7 @@
     <modules>
         <module>talkativebot-core</module>
         <module>talkativebot-spring-boot-starter</module>
+        <module>example-console</module>
     </modules>
 
     <dependencyManagement>
