@@ -45,4 +45,5 @@ You can manually build and run or use the command below.
 ```bash
 ./mvnw spring-boot:run -pl :example-console-memory -am -DskipTests
 ```
-
+## Test Run 
+![Alt text](example-console-memory.png)
