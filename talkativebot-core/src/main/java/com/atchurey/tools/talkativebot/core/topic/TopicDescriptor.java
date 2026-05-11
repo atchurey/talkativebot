@@ -1,4 +1,4 @@
-package com.atchurey.talkativebot.core.topic;
+package com.atchurey.tools.talkativebot.core.topic;
 
 import java.util.Objects;
 

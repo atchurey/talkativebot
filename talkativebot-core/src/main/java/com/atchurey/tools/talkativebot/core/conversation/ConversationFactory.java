@@ -1,6 +1,6 @@
-package com.atchurey.talkativebot.core.conversation;
+package com.atchurey.tools.talkativebot.core.conversation;
 
-import com.atchurey.talkativebot.core.channel.ConversationAddress;
+import com.atchurey.tools.talkativebot.core.channel.ConversationAddress;
 
 public interface ConversationFactory {
 

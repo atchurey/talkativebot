@@ -1,12 +1,12 @@
-package com.atchurey.talkativebot.core.conversation;
+package com.atchurey.tools.talkativebot.core.conversation;
 
-import com.atchurey.talkativebot.core.bot.TalkativeBot;
-import com.atchurey.talkativebot.core.channel.ConversationAddress;
-import com.atchurey.talkativebot.core.topic.ConversationAwareTopic;
-import com.atchurey.talkativebot.core.topic.ConversationTopic;
-import com.atchurey.talkativebot.core.topic.TopicDescriptor;
-import com.atchurey.talkativebot.core.topic.TopicFactory;
-import com.atchurey.talkativebot.core.topic.TopicScanner;
+import com.atchurey.tools.talkativebot.core.bot.Talkativebot;
+import com.atchurey.tools.talkativebot.core.channel.ConversationAddress;
+import com.atchurey.tools.talkativebot.core.topic.ConversationAwareTopic;
+import com.atchurey.tools.talkativebot.core.topic.ConversationTopic;
+import com.atchurey.tools.talkativebot.core.topic.TopicDescriptor;
+import com.atchurey.tools.talkativebot.core.topic.TopicFactory;
+import com.atchurey.tools.talkativebot.core.topic.TopicScanner;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -28,7 +28,7 @@ public abstract class AbstractConversation<T> implements Conversation<T> {
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Getter
-    protected final TalkativeBot bot;
+    protected final Talkativebot bot;
 
     private final Facts facts = new Facts();
 
@@ -42,14 +42,14 @@ public abstract class AbstractConversation<T> implements Conversation<T> {
 
     private boolean abandoned;
 
-    protected AbstractConversation(TalkativeBot bot, ConversationAddress address) {
+    protected AbstractConversation(Talkativebot bot, ConversationAddress address) {
         this.bot = Objects.requireNonNull(bot, "bot must not be null");
         this.address = Objects.requireNonNull(address, "address must not be null");
         discoverTopics(bot.getTopicScanner(), bot.getTopicFactory());
     }
 
     protected AbstractConversation(
-            TalkativeBot bot,
+            Talkativebot bot,
             ConversationAddress address,
             TopicScanner topicScanner,
             TopicFactory topicFactory

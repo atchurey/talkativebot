@@ -1,9 +1,9 @@
-package com.atchurey.talkativebot.core.channel.console;
+package com.atchurey.tools.talkativebot.core.channel.console;
 
-import com.atchurey.talkativebot.core.channel.ConversationAddress;
-import com.atchurey.talkativebot.core.channel.OutgoingMessage;
-import com.atchurey.talkativebot.core.channel.OutputChannel;
-import com.atchurey.talkativebot.core.questions.Option;
+import com.atchurey.tools.talkativebot.core.channel.ConversationAddress;
+import com.atchurey.tools.talkativebot.core.channel.OutgoingMessage;
+import com.atchurey.tools.talkativebot.core.channel.OutputChannel;
+import com.atchurey.tools.talkativebot.core.questions.Option;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -22,7 +22,6 @@ public class ConsoleOutputChannel implements OutputChannel {
     @Override
     public CompletableFuture<Void> send(OutgoingMessage message) {
         if (message.isQuestion()) {
-            System.out.println(message.getQuestion().getText());
 
             if (message.getQuestion().isChoice()) {
                 for (Option option : message.getQuestion().getOptions()) {

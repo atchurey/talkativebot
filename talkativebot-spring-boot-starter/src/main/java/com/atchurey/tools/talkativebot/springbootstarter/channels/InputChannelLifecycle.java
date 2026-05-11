@@ -1,7 +1,7 @@
-package com.atchurey.talkativebot.springbootstarter.channels;
+package com.atchurey.tools.talkativebot.springbootstarter.channels;
 
-import com.atchurey.talkativebot.core.bot.TalkativeBot;
-import com.atchurey.talkativebot.core.channel.InputChannel;
+import com.atchurey.tools.talkativebot.core.bot.Talkativebot;
+import com.atchurey.tools.talkativebot.core.channel.InputChannel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.SmartLifecycle;
 
@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @RequiredArgsConstructor
 public class InputChannelLifecycle implements SmartLifecycle {
 
-    private final TalkativeBot talkativeBot;
+    private final Talkativebot talkativeBot;
     private final List<InputChannel> inputChannels;
     private final AtomicBoolean running = new AtomicBoolean(false);
 

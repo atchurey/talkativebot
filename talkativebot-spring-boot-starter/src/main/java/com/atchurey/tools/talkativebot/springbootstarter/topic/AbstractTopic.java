@@ -1,15 +1,15 @@
-package com.atchurey.talkativebot.springbootstarter.topic;
+package com.atchurey.tools.talkativebot.springbootstarter.topic;
 
-import com.atchurey.talkativebot.core.bot.TalkativeBot;
-import com.atchurey.talkativebot.core.channel.SelectedAnswer;
-import com.atchurey.talkativebot.core.conversation.AbstractConversation;
-import com.atchurey.talkativebot.core.conversation.Conversation;
-import com.atchurey.talkativebot.core.conversation.Facts;
-import com.atchurey.talkativebot.core.questions.Question;
-import com.atchurey.talkativebot.core.topic.ConversationAwareTopic;
-import com.atchurey.talkativebot.core.topic.ConversationTopic;
-import com.atchurey.talkativebot.core.topic.TopicState;
-import com.atchurey.talkativebot.core.topic.interfaces.Topic;
+import com.atchurey.tools.talkativebot.core.bot.Talkativebot;
+import com.atchurey.tools.talkativebot.core.channel.SelectedAnswer;
+import com.atchurey.tools.talkativebot.core.conversation.AbstractConversation;
+import com.atchurey.tools.talkativebot.core.conversation.Conversation;
+import com.atchurey.tools.talkativebot.core.conversation.Facts;
+import com.atchurey.tools.talkativebot.core.questions.Question;
+import com.atchurey.tools.talkativebot.core.topic.ConversationAwareTopic;
+import com.atchurey.tools.talkativebot.core.topic.ConversationTopic;
+import com.atchurey.tools.talkativebot.core.topic.TopicState;
+import com.atchurey.tools.talkativebot.core.topic.interfaces.Topic;
 import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -208,12 +208,12 @@ public abstract class AbstractTopic implements ConversationTopic, ConversationAw
         conversation.getFacts().put(name, value);
     }
 
-    protected TalkativeBot getBot() {
+    protected Talkativebot getBot() {
         if (conversation instanceof AbstractConversation<?> abstractConversation) {
             return abstractConversation.getBot();
         }
 
-        throw new IllegalStateException("Conversation does not expose TalkativeBot: " + conversation);
+        throw new IllegalStateException("Conversation does not expose Talkativebot: " + conversation);
     }
 
     private Topic topicContext() {

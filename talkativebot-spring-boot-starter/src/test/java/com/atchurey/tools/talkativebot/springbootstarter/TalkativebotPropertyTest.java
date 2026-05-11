@@ -1,10 +1,10 @@
-package com.atchurey.talkativebot.springbootstarter;
+package com.atchurey.tools.talkativebot.springbootstarter;
 
-import com.atchurey.talkativebot.core.bot.TalkativeBot;
-import com.atchurey.talkativebot.core.configs.TalkativebotProperties;
-import com.atchurey.talkativebot.springbootstarter.configs.TalkativeBotAutoConfiguration;
+import com.atchurey.tools.talkativebot.core.bot.Talkativebot;
+import com.atchurey.tools.talkativebot.core.configs.TalkativebotProperties;
+import com.atchurey.tools.talkativebot.springbootstarter.configs.TalkativebotAutoConfiguration;
 
-import com.atchurey.talkativebot.springbootstarter.configs.properties.SpringBootTalkativebotProperties;
+import com.atchurey.tools.talkativebot.springbootstarter.configs.properties.SpringBootTalkativebotProperties;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
 
@@ -15,7 +15,7 @@ import org.springframework.test.context.ContextConfiguration;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @SpringBootTest
-@ContextConfiguration(classes = {TalkativeBotAutoConfiguration.class})
+@ContextConfiguration(classes = {TalkativebotAutoConfiguration.class})
 public class TalkativebotPropertyTest {
 
     @Autowired
@@ -23,7 +23,7 @@ public class TalkativebotPropertyTest {
     @Autowired
     private SpringBootTalkativebotProperties springBootTalkativebotProperties;
     @Autowired
-    private TalkativeBot talkativeBot;
+    private Talkativebot talkativeBot;
 
     @Test
     public void contextLoads() {
@@ -43,7 +43,7 @@ public class TalkativebotPropertyTest {
         assertThat(talkativebotProperties.getChannels()).satisfies(channels -> {
             if (channels.isConsoleEnabled()) {
                 assertThat(talkativebotProperties.getChannels().getConsoleAddress())
-                        .as("If console channel is enabled then console channel address must ne set.")
+                        .as("If console channel is enabled then console channel address must be set.")
                         .isNotNull();
             }
         });

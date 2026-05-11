@@ -1,6 +1,6 @@
-package com.atchurey.talkativebot.core.topic;
+package com.atchurey.tools.talkativebot.core.topic;
 
-import com.atchurey.talkativebot.core.conversation.Conversation;
+import com.atchurey.tools.talkativebot.core.conversation.Conversation;
 
 import java.lang.reflect.Constructor;
 

@@ -1,6 +1,6 @@
-package com.atchurey.talkativebot.core.configs;
+package com.atchurey.tools.talkativebot.core.configs;
 
-import com.atchurey.talkativebot.core.channel.ConversationAddress;
+import com.atchurey.tools.talkativebot.core.channel.ConversationAddress;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;

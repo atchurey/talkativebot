@@ -1,8 +1,8 @@
-package com.atchurey.talkativebot.springbootstarter.configs;
+package com.atchurey.tools.talkativebot.springbootstarter.configs;
 
-import com.atchurey.talkativebot.core.channel.console.ConsoleInputChannel;
-import com.atchurey.talkativebot.core.channel.console.ConsoleOutputChannel;
-import com.atchurey.talkativebot.core.configs.TalkativebotProperties;
+import com.atchurey.tools.talkativebot.core.channel.console.ConsoleInputChannel;
+import com.atchurey.tools.talkativebot.core.channel.console.ConsoleOutputChannel;
+import com.atchurey.tools.talkativebot.core.configs.TalkativebotProperties;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -12,11 +12,11 @@ import org.springframework.context.annotation.Bean;
 @AutoConfiguration
 @ConditionalOnClass(ConsoleInputChannel.class)
 @ConditionalOnProperty(
-        prefix = "atchurey.talkative.bot.channels",
+        prefix = "atchurey.tools.talkativebot.channels",
         name = "console-enabled",
         havingValue = "true"
 )
-public class TalkativeBotConsoleAutoConfiguration {
+public class TalkativebotConsoleAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean

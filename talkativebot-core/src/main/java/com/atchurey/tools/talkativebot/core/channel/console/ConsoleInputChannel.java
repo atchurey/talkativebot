@@ -1,9 +1,9 @@
-package com.atchurey.talkativebot.core.channel.console;
+package com.atchurey.tools.talkativebot.core.channel.console;
 
-import com.atchurey.talkativebot.core.channel.ConversationAddress;
-import com.atchurey.talkativebot.core.channel.IncomingMessage;
-import com.atchurey.talkativebot.core.channel.InputChannel;
-import com.atchurey.talkativebot.core.channel.InputMessageHandler;
+import com.atchurey.tools.talkativebot.core.channel.ConversationAddress;
+import com.atchurey.tools.talkativebot.core.channel.IncomingMessage;
+import com.atchurey.tools.talkativebot.core.channel.InputChannel;
+import com.atchurey.tools.talkativebot.core.channel.InputMessageHandler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

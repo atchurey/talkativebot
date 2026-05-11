@@ -1,4 +1,4 @@
-package com.atchurey.talkativebot.core.channel;
+package com.atchurey.tools.talkativebot.core.channel;
 
 import java.util.Optional;
 

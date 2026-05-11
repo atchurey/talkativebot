@@ -1,7 +1,7 @@
-package com.atchurey.talkativebot.springbootstarter.channels.stream;
+package com.atchurey.tools.talkativebot.springbootstarter.channels.stream;
 
-import com.atchurey.talkativebot.core.channel.IncomingMessage;
-import com.atchurey.talkativebot.core.channel.InputMessageHandler;
+import com.atchurey.tools.talkativebot.core.channel.IncomingMessage;
+import com.atchurey.tools.talkativebot.core.channel.InputMessageHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

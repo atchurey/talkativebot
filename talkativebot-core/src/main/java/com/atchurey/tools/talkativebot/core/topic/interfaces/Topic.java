@@ -1,6 +1,6 @@
-package com.atchurey.talkativebot.core.topic.interfaces;
+package com.atchurey.tools.talkativebot.core.topic.interfaces;
 
-import com.atchurey.talkativebot.core.conversation.Conversation;
+import com.atchurey.tools.talkativebot.core.conversation.Conversation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

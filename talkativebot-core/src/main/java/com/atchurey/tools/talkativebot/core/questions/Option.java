@@ -1,4 +1,4 @@
-package com.atchurey.talkativebot.core.questions;
+package com.atchurey.tools.talkativebot.core.questions;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

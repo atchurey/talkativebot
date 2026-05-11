@@ -1,25 +1,25 @@
-package com.atchurey.talkativebot.springbootstarter.configs;
+package com.atchurey.tools.talkativebot.springbootstarter.configs;
 
-import com.atchurey.talkativebot.core.bot.TalkativeBot;
-import com.atchurey.talkativebot.core.channel.ConversationAddress;
-import com.atchurey.talkativebot.core.channel.ConversationStartRegistry;
-import com.atchurey.talkativebot.core.channel.ConversationStartResolver;
-import com.atchurey.talkativebot.core.channel.DefaultOptionSelector;
-import com.atchurey.talkativebot.core.channel.InputChannel;
-import com.atchurey.talkativebot.core.channel.OptionSelector;
-import com.atchurey.talkativebot.core.channel.OutputChannel;
-import com.atchurey.talkativebot.core.channel.OutputChannelRegistry;
-import com.atchurey.talkativebot.core.channel.PendingInteractionStore;
-import com.atchurey.talkativebot.core.configs.TalkativebotProperties;
-import com.atchurey.talkativebot.core.conversation.ConversationFactory;
-import com.atchurey.talkativebot.core.conversation.ReflectionConversationFactory;
-import com.atchurey.talkativebot.springbootstarter.topic.SpringTopicFactory;
-import com.atchurey.talkativebot.springbootstarter.topic.SpringTopicScanner;
-import com.atchurey.talkativebot.core.topic.TopicFactory;
-import com.atchurey.talkativebot.core.topic.TopicScanner;
-import com.atchurey.talkativebot.core.store.InMemoryPendingInteractionStore;
-import com.atchurey.talkativebot.springbootstarter.channels.InputChannelLifecycle;
-import com.atchurey.talkativebot.springbootstarter.configs.properties.SpringBootTalkativebotProperties;
+import com.atchurey.tools.talkativebot.core.bot.Talkativebot;
+import com.atchurey.tools.talkativebot.core.channel.ConversationAddress;
+import com.atchurey.tools.talkativebot.core.channel.ConversationStartRegistry;
+import com.atchurey.tools.talkativebot.core.channel.ConversationStartResolver;
+import com.atchurey.tools.talkativebot.core.channel.DefaultOptionSelector;
+import com.atchurey.tools.talkativebot.core.channel.InputChannel;
+import com.atchurey.tools.talkativebot.core.channel.OptionSelector;
+import com.atchurey.tools.talkativebot.core.channel.OutputChannel;
+import com.atchurey.tools.talkativebot.core.channel.OutputChannelRegistry;
+import com.atchurey.tools.talkativebot.core.channel.PendingInteractionStore;
+import com.atchurey.tools.talkativebot.core.configs.TalkativebotProperties;
+import com.atchurey.tools.talkativebot.core.conversation.ConversationFactory;
+import com.atchurey.tools.talkativebot.core.conversation.ReflectionConversationFactory;
+import com.atchurey.tools.talkativebot.springbootstarter.topic.SpringTopicFactory;
+import com.atchurey.tools.talkativebot.springbootstarter.topic.SpringTopicScanner;
+import com.atchurey.tools.talkativebot.core.topic.TopicFactory;
+import com.atchurey.tools.talkativebot.core.topic.TopicScanner;
+import com.atchurey.tools.talkativebot.core.store.InMemoryPendingInteractionStore;
+import com.atchurey.tools.talkativebot.springbootstarter.channels.InputChannelLifecycle;
+import com.atchurey.tools.talkativebot.springbootstarter.configs.properties.SpringBootTalkativebotProperties;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -33,9 +33,9 @@ import org.springframework.context.annotation.Bean;
 import java.util.List;
 
 @AutoConfiguration
-@ConditionalOnClass(TalkativeBot.class)
+@ConditionalOnClass(Talkativebot.class)
 @EnableConfigurationProperties(SpringBootTalkativebotProperties.class)
-public class TalkativeBotAutoConfiguration {
+public class TalkativebotAutoConfiguration {
 
     @Autowired
     SpringBootTalkativebotProperties springBootTalkativebotProperties;
@@ -91,7 +91,7 @@ public class TalkativeBotAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(PendingInteractionStore.class)
     @ConditionalOnProperty(
-            prefix = "atchurey.talkative.bot.pending-interaction",
+            prefix = "atchurey.tools.talkativebot.pending-interaction",
             name = "store",
             havingValue = "memory",
             matchIfMissing = true
@@ -103,7 +103,7 @@ public class TalkativeBotAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public ConversationFactory conversationFactory(
-            ObjectProvider<TalkativeBot> talkativeBotProvider) {
+            ObjectProvider<Talkativebot> talkativeBotProvider) {
 
         return new ReflectionConversationFactory(talkativeBotProvider::getObject);
     }
@@ -123,13 +123,13 @@ public class TalkativeBotAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(
-            prefix = "atchurey.talkative.bot.channels",
+            prefix = "atchurey.tools.talkativebot.channels",
             name = "enabled",
             havingValue = "true",
             matchIfMissing = true
     )
     public InputChannelLifecycle inputChannelLifecycle(
-            TalkativeBot talkativeBot,
+            Talkativebot talkativeBot,
             List<InputChannel> inputChannels) {
         return new InputChannelLifecycle(talkativeBot, inputChannels);
     }
@@ -137,13 +137,13 @@ public class TalkativeBotAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(PendingInteractionStore.class)
     @ConditionalOnProperty(
-            prefix = "atchurey.talkative.bot.pending-interaction",
+            prefix = "atchurey.tools.talkativebot.pending-interaction",
             name = "store",
             havingValue = "redis"
     )
     public PendingInteractionStore missingRedisPendingInteractionStoreFailure() {
         throw new IllegalStateException(
-                "atchurey.talkative.bot.pending-interaction.store=redis, " +
+                "atchurey.tools.talkativebot.pending-interaction.store=redis, " +
                         "but Spring Data Redis is not available or no RedisOperations bean exists. " +
                         "Add spring-boot-starter-data-redis and configure RedisTemplate<String, Object>."
         );
@@ -152,7 +152,7 @@ public class TalkativeBotAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(PendingInteractionStore.class)
     @ConditionalOnProperty(
-            prefix = "atchurey.talkative.bot.pending-interaction",
+            prefix = "atchurey.tools.talkativebot.pending-interaction",
             name = "store",
             havingValue = "database"
     )
@@ -166,7 +166,7 @@ public class TalkativeBotAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public TalkativeBot talkativeBot(TalkativebotProperties properties,
+    public Talkativebot talkativeBot(TalkativebotProperties properties,
                                      PendingInteractionStore pendingInteractionStore,
                                      TopicScanner topicScanner,
                                      TopicFactory topicFactory,
@@ -174,7 +174,7 @@ public class TalkativeBotAutoConfiguration {
                                      OptionSelector optionSelector,
                                      ConversationFactory conversationFactory,
                                      ConversationStartRegistry conversationStartRegistry) {
-        return new TalkativeBot(
+        return new Talkativebot(
                 properties,
                 pendingInteractionStore,
                 topicScanner,

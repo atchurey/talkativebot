@@ -1,4 +1,4 @@
-package com.atchurey.talkativebot.core.conversation;
+package com.atchurey.tools.talkativebot.core.conversation;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;

@@ -1,15 +1,15 @@
-package com.atchurey.talkativebot.core.conversation;
+package com.atchurey.tools.talkativebot.core.conversation;
 
-import com.atchurey.talkativebot.core.bot.TalkativeBot;
-import com.atchurey.talkativebot.core.channel.ConversationAddress;
+import com.atchurey.tools.talkativebot.core.bot.Talkativebot;
+import com.atchurey.tools.talkativebot.core.channel.ConversationAddress;
 
 import java.util.function.Supplier;
 
 public class ReflectionConversationFactory implements ConversationFactory {
 
-    private final Supplier<TalkativeBot> botSupplier;
+    private final Supplier<Talkativebot> botSupplier;
 
-    public ReflectionConversationFactory(Supplier<TalkativeBot> botSupplier) {
+    public ReflectionConversationFactory(Supplier<Talkativebot> botSupplier) {
         this.botSupplier = botSupplier;
     }
 
@@ -23,7 +23,7 @@ public class ReflectionConversationFactory implements ConversationFactory {
             }
 
             return (Conversation<?>) type
-                    .getConstructor(TalkativeBot.class, ConversationAddress.class)
+                    .getConstructor(Talkativebot.class, ConversationAddress.class)
                     .newInstance(botSupplier.get(), address);
         } catch (ReflectiveOperationException exception) {
             throw new IllegalStateException("Could not create conversation " + conversationType, exception);

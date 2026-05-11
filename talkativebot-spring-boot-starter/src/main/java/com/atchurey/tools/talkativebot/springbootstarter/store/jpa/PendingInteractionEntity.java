@@ -1,4 +1,4 @@
-package com.atchurey.talkativebot.springbootstarter.store.jpa;
+package com.atchurey.tools.talkativebot.springbootstarter.store.jpa;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

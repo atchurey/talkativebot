@@ -1,9 +1,9 @@
-package com.atchurey.talkativebot.springbootstarter.configs;
+package com.atchurey.tools.talkativebot.springbootstarter.configs;
 
-import com.atchurey.talkativebot.core.channel.PendingInteractionStore;
-import com.atchurey.talkativebot.springbootstarter.store.jpa.JpaPendingInteractionRepository;
-import com.atchurey.talkativebot.springbootstarter.store.jpa.JpaPendingInteractionStore;
-import com.atchurey.talkativebot.springbootstarter.store.jpa.PendingInteractionEntity;
+import com.atchurey.tools.talkativebot.core.channel.PendingInteractionStore;
+import com.atchurey.tools.talkativebot.springbootstarter.store.jpa.JpaPendingInteractionRepository;
+import com.atchurey.tools.talkativebot.springbootstarter.store.jpa.JpaPendingInteractionStore;
+import com.atchurey.tools.talkativebot.springbootstarter.store.jpa.PendingInteractionEntity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -15,19 +15,19 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-@AutoConfiguration(before = TalkativeBotAutoConfiguration.class)
+@AutoConfiguration(before = TalkativebotAutoConfiguration.class)
 @ConditionalOnClass({
         EntityManager.class,
         JpaRepository.class,
 })
 @EntityScan(basePackageClasses = { PendingInteractionEntity.class})
 @EnableJpaRepositories(basePackageClasses = { JpaPendingInteractionRepository.class })
-public class TalkativeBotJpaAutoConfiguration {
+public class TalkativebotJpaAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(PendingInteractionStore.class)
 	@ConditionalOnProperty(
-			prefix = "atchurey.talkative.bot.pending-interaction",
+			prefix = "atchurey.tools.talkativebot.pending-interaction",
 			name = "store",
 			havingValue = "database"
 	)

@@ -1,7 +1,7 @@
-package com.atchurey.talkativebot.core.channel;
+package com.atchurey.tools.talkativebot.core.channel;
 
-import com.atchurey.talkativebot.core.conversation.Facts;
-import com.atchurey.talkativebot.core.questions.Question;
+import com.atchurey.tools.talkativebot.core.conversation.Facts;
+import com.atchurey.tools.talkativebot.core.questions.Question;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;

@@ -1,8 +1,8 @@
-package com.atchurey.talkativebot.springbootstarter.channels.stream;
+package com.atchurey.tools.talkativebot.springbootstarter.channels.stream;
 
-import com.atchurey.talkativebot.core.channel.ConversationAddress;
-import com.atchurey.talkativebot.core.channel.OutgoingMessage;
-import com.atchurey.talkativebot.core.channel.OutputChannel;
+import com.atchurey.tools.talkativebot.core.channel.ConversationAddress;
+import com.atchurey.tools.talkativebot.core.channel.OutgoingMessage;
+import com.atchurey.tools.talkativebot.core.channel.OutputChannel;
 import org.springframework.cloud.stream.function.StreamBridge;
 
 import java.util.concurrent.CompletableFuture;

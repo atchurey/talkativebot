@@ -1,6 +1,6 @@
-package com.atchurey.talkativebot.springbootstarter.configs.properties;
+package com.atchurey.tools.talkativebot.springbootstarter.configs.properties;
 
-import com.atchurey.talkativebot.core.channel.ConversationAddress;
+import com.atchurey.tools.talkativebot.core.channel.ConversationAddress;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,7 +11,7 @@ import java.time.Duration;
 
 @Setter
 @Getter
-@ConfigurationProperties("atchurey.talkativebot")
+@ConfigurationProperties("atchurey.tools.talkativebot")
 @Validated
 public class SpringBootTalkativebotProperties {
     private String hello;

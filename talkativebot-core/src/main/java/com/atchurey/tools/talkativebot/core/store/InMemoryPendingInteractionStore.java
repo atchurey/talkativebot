@@ -1,8 +1,8 @@
-package com.atchurey.talkativebot.core.store;
+package com.atchurey.tools.talkativebot.core.store;
 
-import com.atchurey.talkativebot.core.channel.ConversationAddress;
-import com.atchurey.talkativebot.core.channel.PendingInteraction;
-import com.atchurey.talkativebot.core.channel.PendingInteractionStore;
+import com.atchurey.tools.talkativebot.core.channel.ConversationAddress;
+import com.atchurey.tools.talkativebot.core.channel.PendingInteraction;
+import com.atchurey.tools.talkativebot.core.channel.PendingInteractionStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

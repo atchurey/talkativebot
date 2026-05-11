@@ -1,6 +1,6 @@
-package com.atchurey.talkativebot.core.channel;
+package com.atchurey.tools.talkativebot.core.channel;
 
-import com.atchurey.talkativebot.core.questions.Option;
+import com.atchurey.tools.talkativebot.core.questions.Option;
 
 import java.io.Serializable;
 import java.util.Optional;

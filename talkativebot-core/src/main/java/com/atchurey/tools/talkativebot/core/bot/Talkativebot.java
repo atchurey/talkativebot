@@ -1,30 +1,30 @@
-package com.atchurey.talkativebot.core.bot;
+package com.atchurey.tools.talkativebot.core.bot;
 
-import com.atchurey.talkativebot.core.configs.TalkativebotProperties;
-import com.atchurey.talkativebot.core.channel.ConversationStartRegistry;
-import com.atchurey.talkativebot.core.channel.ConversationStartRequest;
-import com.atchurey.talkativebot.core.channel.IncomingMessage;
-import com.atchurey.talkativebot.core.channel.InputMessageHandler;
-import com.atchurey.talkativebot.core.channel.OptionSelector;
-import com.atchurey.talkativebot.core.channel.OutgoingMessage;
-import com.atchurey.talkativebot.core.channel.OutputChannelRegistry;
-import com.atchurey.talkativebot.core.channel.PendingInteraction;
-import com.atchurey.talkativebot.core.channel.PendingInteractionStore;
-import com.atchurey.talkativebot.core.channel.SelectedAnswer;
-import com.atchurey.talkativebot.core.conversation.Conversation;
-import com.atchurey.talkativebot.core.conversation.ConversationFactory;
-import com.atchurey.talkativebot.core.questions.Option;
-import com.atchurey.talkativebot.core.questions.Question;
-import com.atchurey.talkativebot.core.topic.ConversationTopic;
-import com.atchurey.talkativebot.core.topic.ReflectionTopicFactory;
-import com.atchurey.talkativebot.core.topic.TopicFactory;
-import com.atchurey.talkativebot.core.topic.TopicScanner;
+import com.atchurey.tools.talkativebot.core.configs.TalkativebotProperties;
+import com.atchurey.tools.talkativebot.core.channel.ConversationStartRegistry;
+import com.atchurey.tools.talkativebot.core.channel.ConversationStartRequest;
+import com.atchurey.tools.talkativebot.core.channel.IncomingMessage;
+import com.atchurey.tools.talkativebot.core.channel.InputMessageHandler;
+import com.atchurey.tools.talkativebot.core.channel.OptionSelector;
+import com.atchurey.tools.talkativebot.core.channel.OutgoingMessage;
+import com.atchurey.tools.talkativebot.core.channel.OutputChannelRegistry;
+import com.atchurey.tools.talkativebot.core.channel.PendingInteraction;
+import com.atchurey.tools.talkativebot.core.channel.PendingInteractionStore;
+import com.atchurey.tools.talkativebot.core.channel.SelectedAnswer;
+import com.atchurey.tools.talkativebot.core.conversation.Conversation;
+import com.atchurey.tools.talkativebot.core.conversation.ConversationFactory;
+import com.atchurey.tools.talkativebot.core.questions.Option;
+import com.atchurey.tools.talkativebot.core.questions.Question;
+import com.atchurey.tools.talkativebot.core.topic.ConversationTopic;
+import com.atchurey.tools.talkativebot.core.topic.ReflectionTopicFactory;
+import com.atchurey.tools.talkativebot.core.topic.TopicFactory;
+import com.atchurey.tools.talkativebot.core.topic.TopicScanner;
 import lombok.Getter;
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 
-public class TalkativeBot implements InputMessageHandler {
+public class Talkativebot implements InputMessageHandler {
 
     @Getter
     private final TopicScanner topicScanner;
@@ -40,7 +40,7 @@ public class TalkativeBot implements InputMessageHandler {
     private final Duration pendingInteractionTtl;
     private final ConversationStartRegistry conversationStartRegistry;
 
-    public TalkativeBot(
+    public Talkativebot(
             TalkativebotProperties botProperties,
             PendingInteractionStore pendingInteractionStore,
             TopicScanner topicScanner,
@@ -164,7 +164,6 @@ public class TalkativeBot implements InputMessageHandler {
     }
 
     public CompletableFuture<String> reply(String text) {
-        System.out.println("Bot.reply(): " + text);
         return CompletableFuture.completedFuture(text);
     }
 }

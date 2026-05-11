@@ -1,4 +1,4 @@
-package com.atchurey.talkativebot.springbootstarter.store.jpa;
+package com.atchurey.tools.talkativebot.springbootstarter.store.jpa;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

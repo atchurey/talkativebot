@@ -1,7 +1,7 @@
-package com.atchurey.talkativebot.springbootstarter.configs;
+package com.atchurey.tools.talkativebot.springbootstarter.configs;
 
-import com.atchurey.talkativebot.core.channel.PendingInteractionStore;
-import com.atchurey.talkativebot.springbootstarter.store.redis.RedisPendingInteractionStore;
+import com.atchurey.tools.talkativebot.core.channel.PendingInteractionStore;
+import com.atchurey.tools.talkativebot.springbootstarter.store.redis.RedisPendingInteractionStore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -11,15 +11,15 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.core.RedisOperations;
 
-@AutoConfiguration(before = TalkativeBotAutoConfiguration.class)
+@AutoConfiguration(before = TalkativebotAutoConfiguration.class)
 @ConditionalOnClass(RedisOperations.class)
-public class TalkativeBotRedisAutoConfiguration {
+public class TalkativebotRedisAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(PendingInteractionStore.class)
 	@ConditionalOnBean(RedisOperations.class)
 	@ConditionalOnProperty(
-			prefix = "atchurey.talkative.bot.pending-interaction",
+			prefix = "atchurey.tools.talkativebot.pending-interaction",
 			name = "store",
 			havingValue = "redis"
 	)

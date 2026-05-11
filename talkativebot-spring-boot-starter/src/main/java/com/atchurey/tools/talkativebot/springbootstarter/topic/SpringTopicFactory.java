@@ -1,11 +1,11 @@
-package com.atchurey.talkativebot.springbootstarter.topic;
+package com.atchurey.tools.talkativebot.springbootstarter.topic;
 
-import com.atchurey.talkativebot.core.conversation.Conversation;
-import com.atchurey.talkativebot.core.topic.ConversationAwareTopic;
-import com.atchurey.talkativebot.core.topic.ConversationTopic;
-import com.atchurey.talkativebot.core.topic.ReflectionTopicFactory;
-import com.atchurey.talkativebot.core.topic.TopicDescriptor;
-import com.atchurey.talkativebot.core.topic.TopicFactory;
+import com.atchurey.tools.talkativebot.core.conversation.Conversation;
+import com.atchurey.tools.talkativebot.core.topic.ConversationAwareTopic;
+import com.atchurey.tools.talkativebot.core.topic.ConversationTopic;
+import com.atchurey.tools.talkativebot.core.topic.ReflectionTopicFactory;
+import com.atchurey.tools.talkativebot.core.topic.TopicDescriptor;
+import com.atchurey.tools.talkativebot.core.topic.TopicFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationContext;
 

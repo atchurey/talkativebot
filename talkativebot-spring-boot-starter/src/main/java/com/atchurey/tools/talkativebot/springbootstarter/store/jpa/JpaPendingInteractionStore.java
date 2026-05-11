@@ -1,8 +1,8 @@
-package com.atchurey.talkativebot.springbootstarter.store.jpa;
+package com.atchurey.tools.talkativebot.springbootstarter.store.jpa;
 
-import com.atchurey.talkativebot.core.channel.ConversationAddress;
-import com.atchurey.talkativebot.core.channel.PendingInteraction;
-import com.atchurey.talkativebot.core.channel.PendingInteractionStore;
+import com.atchurey.tools.talkativebot.core.channel.ConversationAddress;
+import com.atchurey.tools.talkativebot.core.channel.PendingInteraction;
+import com.atchurey.tools.talkativebot.core.channel.PendingInteractionStore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;

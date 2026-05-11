@@ -1,7 +1,7 @@
-package com.atchurey.talkativebot.core.topic;
+package com.atchurey.tools.talkativebot.core.topic;
 
-import com.atchurey.talkativebot.core.channel.SelectedAnswer;
-import com.atchurey.talkativebot.core.conversation.Facts;
+import com.atchurey.tools.talkativebot.core.channel.SelectedAnswer;
+import com.atchurey.tools.talkativebot.core.conversation.Facts;
 
 import java.io.Serializable;
 
