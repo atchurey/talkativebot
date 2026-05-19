@@ -1,0 +1,113 @@
+= TalkativeBot Reference Guide
+Albert Atchurey
+:revnumber: {project-version}
+:toc: left
+:toclevels: 3
+:sectnums:
+:sectanchors:
+:icons: font
+:source-highlighter: coderay
+
+== Overview
+
+TalkativeBot provides a conversation orchestration layer that decouples your business logic from chat platforms, messaging systems, and AI engines. Build structured, stateful conversations once and deploy them across multiple channels without rewriting your interaction logic.
+
+== Why TalkativeBot?
+
+Many business flows eventually need human interaction:
+
+* Collecting missing information
+* Confirming a decision
+* Selecting from available options
+* Approving or rejecting an action
+* Clarifying an exception
+* Resuming a workflow after a user response
+
+TalkativeBot helps you model interactions as conversations:
+
+* Ask a question
+* Wait for an answer
+* Persist the pending interaction
+* Resume the flow when the answer arrives
+* Route messages through the appropriate channel
+
+== Core Concepts
+
+=== Conversations
+A `Conversation` orchestrates the flow based on the associated `Topic` definitions. It is defined by a class that extends `AbstractConversation`.
+
+=== Topics
+For a given conversation, you can define multiple topics. Each topic is a stateful conversation flow.
+
+=== Channels
+Messaging platforms are treated as pluggable adapters.
+
+== Installation
+
+[source,xml,subs="attributes,verbatim"]
+----
+<dependency>
+    <groupId>com.atchurey.tools</groupId>
+    <artifactId>talkativebot-spring-boot-starter</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+== Quick Start
+
+Manually play a conversation by calling `TalkativeBot.play(...)`.
+
+[source,java]
+----
+@Autowired
+TalkativeBot talkativebot;
+
+ConversationAddress consoleAddress = new ConversationAddress(
+    "console",
+    "console-user-1",
+    "console-session-1",
+    "conversation-id-1"
+);
+talkativebot.play(new SaleConversation(talkativebot, consoleAddress));
+----
+
+Or automatically trigger a conversation flow when a user sends a message to the bot by implementing a `ConversationStartResolver`.
+
+[source,java]
+----
+@Component
+public class SaleConversationStartResolver implements ConversationStartResolver {
+
+    @Override
+    public Optional<ConversationStartRequest> resolve(IncomingMessage message) {
+        if (!"/start".equalsIgnoreCase(message.getText().trim())) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new ConversationStartRequest(
+                message.getAddress(),
+                SaleConversation.class.getName(),
+                "/start",
+                Map.of(
+                        "source_channel", message.getAddress().getChannel(),
+                        "external_user_id", valueOrEmpty(message.getAddress().getUserId())
+                )
+        ));
+    }
+
+    private Serializable valueOrEmpty(String value) {
+        return value == null ? "" : value;
+    }
+}
+----
+
+== Configuration
+
+[source,properties]
+----
+atchurey.tools.talkativebot.pending-interaction.store=memory | redis | database
+atchurey.tools.talkativebot.pending-interaction.ttl=30m
+atchurey.tools.talkativebot.topic-base-package=com.example.basepackage
+atchurey.tools.talkativebot.channels.enabled=true
+atchurey.tools.talkativebot.channels.console-enabled=true
+----

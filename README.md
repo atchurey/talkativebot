@@ -8,6 +8,7 @@
 ## Table of Contents
 
 - [Overview](#overview)
+- [What It Is Not](#what-it-is-not)
 - [Why TalkativeBot?](#why-talkativebot)
 - [Key Features](#key-features)
 - [Modules](#modules)
@@ -29,13 +30,12 @@ TalkativeBot provides a conversation orchestration layer that decouples your bus
 messaging systems, and AI engines. Build structured, stateful conversations once and deploy them across multiple
 channels without rewriting your interaction logic.
 
+## What It Is Not
+TalkativeBot is **not a workflow engine, chatbot platform, or AI framework**. It's a lightweight Java/Spring conversation state manager for human-in-the-loop workflows. It focuses on asking questions, persisting pending interactions, resuming conversations, and keeping transport-specific code outside business logic.
+
 ## Architecture
 
 TalkativeBot acts as a central orchestration hub that decouples business conversation logic from the underlying messaging channels and infrastructure.
-
-![Architecture Drawing](docs/images/architecture.svg)
-
-For a detailed look at the conversation lifecycle and internal components, see the [Architecture Documentation](ARCHITECTURE.md).
 
 ## Why TalkativeBot?
 
@@ -96,6 +96,23 @@ transport.
 |------------------------------------|-------------------------------------------------|
 | `talkativebot-core`                | Framework-independent conversation engine       |
 | `talkativebot-spring-boot-starter` | Spring Boot auto-configuration and integrations |
+| `talkativebot-docs`                | Reference documentation (Asciidoctor)           |
+
+## Documentation
+
+Comprehensive reference documentation is available in the `talkativebot-docs` module.
+
+### Building Documentation
+
+To generate the HTML reference guide and aggregate Javadocs, run:
+
+```bash
+./mvnw clean prepare-package javadoc:aggregate -DskipTests
+```
+
+The generated documentation will be available at:
+- Reference Guide: `talkativebot-docs/target/generated-docs/index.html`
+- Javadocs: `target/site/apidocs/index.html`
 
 ## Requirements
 - Java 17+
