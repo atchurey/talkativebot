@@ -15,6 +15,11 @@
 	<packaging>pom</packaging>
 	<description>TalkativeBot example for spring-cloud-stream input/output channels and redis store for persistence</description>
 
+	<properties>
+		<maven.deploy.skip>true</maven.deploy.skip>
+		<skipPublishing>true</skipPublishing>
+	</properties>
+
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
