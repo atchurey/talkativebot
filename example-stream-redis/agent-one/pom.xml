@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.demo</groupId>
 		<artifactId>example-stream-redis</artifactId>
-		<version>0.0.4-SNAPSHOT</version>
+		<version>0.0.4</version>
 	</parent>
 
 	<artifactId>example-stream-redis-agent-one</artifactId>
