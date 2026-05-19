@@ -20,21 +20,21 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         EntityManager.class,
         JpaRepository.class,
 })
-@EntityScan(basePackageClasses = { PendingInteractionEntity.class})
+@ConditionalOnProperty(
+        prefix = "atchurey.tools.talkativebot.pending-interaction",
+        name = "store",
+        havingValue = "database"
+)
+@EntityScan(basePackageClasses = { PendingInteractionEntity.class })
 @EnableJpaRepositories(basePackageClasses = { JpaPendingInteractionRepository.class })
 public class TalkativeBotJpaAutoConfiguration {
 
-	@Bean
-	@ConditionalOnMissingBean(PendingInteractionStore.class)
-	@ConditionalOnProperty(
-			prefix = "atchurey.tools.talkativebot.pending-interaction",
-			name = "store",
-			havingValue = "database"
-	)
-	public PendingInteractionStore jpaPendingInteractionStore(
-			JpaPendingInteractionRepository repository,
-			ObjectMapper objectMapper
-	) {
-		return new JpaPendingInteractionStore(repository, objectMapper);
-	}
+    @Bean
+    @ConditionalOnMissingBean(PendingInteractionStore.class)
+    public PendingInteractionStore jpaPendingInteractionStore(
+            JpaPendingInteractionRepository repository,
+            ObjectMapper objectMapper
+    ) {
+        return new JpaPendingInteractionStore(repository, objectMapper);
+    }
 }
