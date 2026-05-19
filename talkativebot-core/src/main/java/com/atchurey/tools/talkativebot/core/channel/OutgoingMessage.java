@@ -2,7 +2,11 @@ package com.atchurey.tools.talkativebot.core.channel;
 
 import com.atchurey.tools.talkativebot.core.questions.Question;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.Getter;
 
 import java.io.Serializable;
@@ -14,6 +18,10 @@ import java.util.UUID;
 public class OutgoingMessage implements Serializable {
 
     private static final long serialVersionUID = 1L;
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+            .registerModule(new JavaTimeModule())
+            .disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
     private final String id;
     private final ConversationAddress address;
@@ -60,7 +68,23 @@ public class OutgoingMessage implements Serializable {
         );
     }
 
+    @JsonIgnore
     public boolean isQuestion() {
         return question != null;
+    }
+
+    @Override
+    public String toString() {
+        try {
+            return OBJECT_MAPPER.writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            return "OutgoingMessage{" +
+                    "id='" + id + '\'' +
+                    ", address=" + address +
+                    ", question=" + question +
+                    ", text='" + text + '\'' +
+                    ", createdAt=" + createdAt +
+                    '}';
+        }
     }
 }

@@ -13,6 +13,10 @@ import com.atchurey.tools.talkativebot.core.channel.PendingInteractionStore;
 import com.atchurey.tools.talkativebot.core.channel.SelectedAnswer;
 import com.atchurey.tools.talkativebot.core.conversation.Conversation;
 import com.atchurey.tools.talkativebot.core.conversation.ConversationFactory;
+import com.atchurey.tools.talkativebot.core.conversation.ConversationRuntime;
+import com.atchurey.tools.talkativebot.core.conversation.ConversationRuntimeInitializerResolver;
+import com.atchurey.tools.talkativebot.core.conversation.ConversationRuntimeRegistry;
+import com.atchurey.tools.talkativebot.core.conversation.RuntimeAwareConversation;
 import com.atchurey.tools.talkativebot.core.questions.Option;
 import com.atchurey.tools.talkativebot.core.questions.Question;
 import com.atchurey.tools.talkativebot.core.topic.ConversationTopic;
@@ -39,6 +43,8 @@ public class TalkativeBot implements InputMessageHandler {
     private final ConversationFactory conversationFactory;
     private final Duration pendingInteractionTtl;
     private final ConversationStartRegistry conversationStartRegistry;
+    private final ConversationRuntimeRegistry runtimeRegistry;
+    private final ConversationRuntimeInitializerResolver runtimeInitializerResolver;
 
     public TalkativeBot(
             TalkativeBotProperties botProperties,
@@ -48,7 +54,9 @@ public class TalkativeBot implements InputMessageHandler {
             OutputChannelRegistry outputChannelRegistry,
             OptionSelector optionSelector,
             ConversationFactory conversationFactory,
-            ConversationStartRegistry conversationStartRegistry) {
+            ConversationStartRegistry conversationStartRegistry,
+            ConversationRuntimeRegistry runtimeRegistry,
+            ConversationRuntimeInitializerResolver runtimeInitializerResolver) {
 
         this.botProperties = botProperties;
         this.pendingInteractionStore = pendingInteractionStore;
@@ -59,6 +67,8 @@ public class TalkativeBot implements InputMessageHandler {
         this.conversationFactory = conversationFactory;
         this.pendingInteractionTtl = botProperties.getPendingInteraction().getTtl();
         this.conversationStartRegistry = conversationStartRegistry;
+        this.runtimeRegistry = runtimeRegistry;
+        this.runtimeInitializerResolver = runtimeInitializerResolver;
     }
 
     public TalkativeBotProperties getBotConfigProperties() {
@@ -66,6 +76,7 @@ public class TalkativeBot implements InputMessageHandler {
     }
 
     public <T> CompletableFuture<T> play(Conversation<T> conversation) {
+        hydrateConversationRuntime(conversation);
         return conversation.play();
     }
 
@@ -115,6 +126,7 @@ public class TalkativeBot implements InputMessageHandler {
 
         conversation.getFacts().clear();
         interaction.getFacts().forEach(conversation.getFacts()::add);
+        hydrateConversationRuntime(conversation);
 
         ConversationTopic topic = conversation.getTopic(interaction.getCurrentTopicKey())
                 .orElseThrow(() -> new IllegalStateException(
@@ -145,13 +157,31 @@ public class TalkativeBot implements InputMessageHandler {
         );
 
         startRequest.getInitialFacts().forEach(conversation.getFacts()::put);
-
         conversation.getFacts().put("__talkative.start.trigger", startRequest.getTrigger());
         conversation.getFacts().put("__talkative.start.raw_input", message.getText());
+        hydrateConversationRuntime(conversation);
 
         conversation.play();
 
         return CompletableFuture.completedFuture(null);
+    }
+
+    private void hydrateConversationRuntime(Conversation<?> conversation) {
+        Class<? extends Conversation<?>> conversationType = getConversationType(conversation);
+
+        ConversationRuntime runtime = runtimeRegistry.getOrInitialize(
+                conversationType,
+                runtimeInitializerResolver.resolve(conversationType)
+        );
+
+        if (conversation instanceof RuntimeAwareConversation) {
+            ((RuntimeAwareConversation) conversation).setRuntime(runtime);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Class<? extends Conversation<?>> getConversationType(Conversation<?> conversation) {
+        return (Class<? extends Conversation<?>>) conversation.getClass();
     }
 
     private CompletableFuture<Void> noConversationStarted(IncomingMessage message) {

@@ -5,13 +5,13 @@ import com.atchurey.tools.talkativebot.core.conversation.Facts;
 import com.atchurey.tools.talkativebot.core.questions.Question;
 import com.atchurey.tools.talkativebot.core.topic.interfaces.Topic;
 import com.atchurey.tools.talkativebot.springbootstarter.topic.AbstractTopic;
-import com.example.console.conversations.SaleConversation;
+import com.example.console.conversations.CheckoutConversation;
 
 @Topic(
 		key = "shipping_address",
 		name = "Shipping Address",
 		description = "Collects user's shipping address",
-		conversation = SaleConversation.class,
+		conversation = CheckoutConversation.class,
 		next = "payment_method",
 		order = 3
 )

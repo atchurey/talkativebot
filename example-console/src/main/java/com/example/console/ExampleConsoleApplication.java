@@ -2,7 +2,7 @@ package com.example.console;
 
 import com.atchurey.tools.talkativebot.core.bot.TalkativeBot;
 import com.atchurey.tools.talkativebot.core.channel.ConversationAddress;
-import com.example.console.conversations.SaleConversation;
+import com.example.console.conversations.CheckoutConversation;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
@@ -32,7 +32,7 @@ public class ExampleConsoleApplication {
 			// automatically scanned and registered with the Conversation.
 			ConversationAddress consoleAddress = talkativeBot.getBotConfigProperties()
 					.getChannels().getConsoleAddress();
-			SaleConversation saleConversation = new SaleConversation(talkativeBot, consoleAddress);
+			CheckoutConversation saleConversation = new CheckoutConversation(talkativeBot, consoleAddress);
 			talkativeBot.play(saleConversation);
 		}
 

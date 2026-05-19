@@ -1,0 +1,43 @@
+atchurey:
+  tools:
+    talkativebot:
+      pending-interaction:
+        store: redis
+        ttl: 20m
+      topic-base-package: com.demo.examplestreamredisagentone
+      channels:
+        enabled: true
+
+server:
+  port: 8080
+spring:
+  application:
+    name: agent-one
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+  cloud:
+    function:
+      definition: agentOneInput
+    stream:
+      output-bindings: agentOneOutput-out-0
+      bindings:
+        agentOneInput-in-0:
+          destination: agent-one-input
+          group: agent-one-input-group
+          binder: local_rabbit
+        agentOneOutput-out-0:
+          destination: agent-two-input
+          binder: local_rabbit
+      binders:
+        local_rabbit:
+          type: rabbit
+          environment:
+            spring:
+              rabbitmq:
+                host: localhost
+                port: 5672
+                username: admin
+                password: admin

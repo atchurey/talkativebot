@@ -7,7 +7,7 @@ import com.atchurey.tools.talkativebot.core.questions.Option;
 import com.atchurey.tools.talkativebot.core.questions.Question;
 import com.atchurey.tools.talkativebot.core.topic.interfaces.Topic;
 import com.atchurey.tools.talkativebot.springbootstarter.topic.AbstractTopic;
-import com.example.console.conversations.SaleConversation;
+import com.example.console.conversations.CheckoutConversation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
@@ -16,7 +16,7 @@ import org.springframework.lang.NonNull;
 		key = "payment_method",
 		name = "Payment Method",
 		description = "Choose your payment method",
-		conversation = SaleConversation.class,
+		conversation = CheckoutConversation.class,
 		next = "complete_sale",
 		order = 4
 )

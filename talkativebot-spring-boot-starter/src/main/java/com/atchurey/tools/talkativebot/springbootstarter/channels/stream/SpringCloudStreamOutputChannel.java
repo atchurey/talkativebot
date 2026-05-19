@@ -4,6 +4,7 @@ import com.atchurey.tools.talkativebot.core.channel.ConversationAddress;
 import com.atchurey.tools.talkativebot.core.channel.OutgoingMessage;
 import com.atchurey.tools.talkativebot.core.channel.OutputChannel;
 import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.util.MimeType;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -13,8 +14,7 @@ public class SpringCloudStreamOutputChannel implements OutputChannel {
 
     public SpringCloudStreamOutputChannel(
             StreamBridge streamBridge,
-            String bindingName
-    ) {
+            String bindingName) {
         this.streamBridge = streamBridge;
         this.bindingName = bindingName;
     }
@@ -32,7 +32,7 @@ public class SpringCloudStreamOutputChannel implements OutputChannel {
 
     @Override
     public CompletableFuture<Void> send(OutgoingMessage message) {
-        boolean sent = streamBridge.send(bindingName, message);
+        boolean sent = streamBridge.send(bindingName, message, MimeType.valueOf("application/json"));
 
         if (!sent) {
             return CompletableFuture.failedFuture(

@@ -35,11 +35,6 @@ public class InputChannelLifecycle implements SmartLifecycle {
     }
 
     @Override
-    public boolean isAutoStartup() {
-        return true;
-    }
-
-    @Override
     public int getPhase() {
         return Integer.MAX_VALUE;
     }

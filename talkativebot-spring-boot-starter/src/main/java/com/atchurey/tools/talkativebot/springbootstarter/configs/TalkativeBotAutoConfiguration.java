@@ -12,6 +12,8 @@ import com.atchurey.tools.talkativebot.core.channel.OutputChannelRegistry;
 import com.atchurey.tools.talkativebot.core.channel.PendingInteractionStore;
 import com.atchurey.tools.talkativebot.core.configs.TalkativeBotProperties;
 import com.atchurey.tools.talkativebot.core.conversation.ConversationFactory;
+import com.atchurey.tools.talkativebot.core.conversation.ConversationRuntimeInitializerResolver;
+import com.atchurey.tools.talkativebot.core.conversation.ConversationRuntimeRegistry;
 import com.atchurey.tools.talkativebot.core.conversation.ReflectionConversationFactory;
 import com.atchurey.tools.talkativebot.springbootstarter.topic.SpringTopicFactory;
 import com.atchurey.tools.talkativebot.springbootstarter.topic.SpringTopicScanner;
@@ -154,7 +156,7 @@ public class TalkativeBotAutoConfiguration {
     )
     public PendingInteractionStore missingDatabasePendingInteractionStoreFailure() {
         throw new IllegalStateException(
-                "atchurey.talkative.bot.pending-interaction.store=database, " +
+                "atchurey.tools.talkativebot.pending-interaction.store=database, " +
                         "but Spring Data JPA is not available or JpaPendingInteractionRepository is not registered. " +
                         "Add spring-boot-starter-data-jpa and a JDBC driver."
         );
@@ -169,7 +171,9 @@ public class TalkativeBotAutoConfiguration {
                                      OutputChannelRegistry outputChannelRegistry,
                                      OptionSelector optionSelector,
                                      ConversationFactory conversationFactory,
-                                     ConversationStartRegistry conversationStartRegistry) {
+                                     ConversationStartRegistry conversationStartRegistry,
+                                     ConversationRuntimeRegistry conversationRuntimeRegistry,
+                                     ConversationRuntimeInitializerResolver conversationRuntimeInitializerResolver) {
         return new TalkativeBot(
                 properties,
                 pendingInteractionStore,
@@ -178,7 +182,9 @@ public class TalkativeBotAutoConfiguration {
                 outputChannelRegistry,
                 optionSelector,
                 conversationFactory,
-                conversationStartRegistry);
+                conversationStartRegistry,
+                conversationRuntimeRegistry,
+                conversationRuntimeInitializerResolver);
     }
 
 }

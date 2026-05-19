@@ -1,60 +1,101 @@
-# `TalkativeBot`
+# TalkativeBot
 
-`TalkativeBot` is a Java 17 / Spring Boot 3 library for building stateful conversation flows across multiple channels.
+> A Java 17 / Spring Boot 3 library for building stateful conversation flows across multiple channels.
 
-## Why?
+[![Java](https://img.shields.io/badge/Java-17+-orange.svg)](https://www.oracle.com/java/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.0+-green.svg)](https://spring.io/projects/spring-boot)
 
-Getting your application AI-ready is not only about plugging in a model or adding a chatbot. A good first step is giving your product a clean way to hold structured, stateful conversations.
-The goal is to make AI-driven bots just another client of your application.
+## Table of Contents
+
+- [Overview](#overview)
+- [Why TalkativeBot?](#why-talkativebot)
+- [Key Features](#key-features)
+- [Modules](#modules)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Getting Started](#getting-started)
+- [Configuration](#configuration)
+- [Core Concepts](#core-concepts)
+    - [Conversations](#conversations)
+    - [Topics](#topics)
+    - [Channels](#channels)
+- [Persistence](#persistence)
+- [Examples](#examples)
+- [License](#license)
+
+## Overview
+
+TalkativeBot provides a conversation orchestration layer that decouples your business logic from chat platforms,
+messaging systems, and AI engines. Build structured, stateful conversations once and deploy them across multiple
+channels without rewriting your interaction logic.
+
+## Architecture
+
+TalkativeBot acts as a central orchestration hub that decouples business conversation logic from the underlying messaging channels and infrastructure.
+
+![Architecture Drawing](docs/images/architecture.svg)
+
+For a detailed look at the conversation lifecycle and internal components, see the [Architecture Documentation](ARCHITECTURE.md).
+
+## Why TalkativeBot?
+
+Getting your application AI-ready is not only about plugging in a model or adding a chatbot. A good first step is giving
+your product a clean way to hold structured, stateful conversations—making AI-driven bots just another client of your
+application.
+
+### The Problem
 
 Many business flows eventually need human interaction:
 
-- collecting missing information
-- confirming a decision
-- selecting from available options
-- approving or rejecting an action
-- clarifying an exception
-- resuming a workflow after a user response
+- Collecting missing information
+- Confirming a decision
+- Selecting from available options
+- Approving or rejecting an action
+- Clarifying an exception
+- Resuming a workflow after a user response
 
-If this logic is handled directly inside controllers, services, message consumers, or bot-specific integrations, the application quickly becomes coupled to a particular channel or provider.
-Do not shoot yourself in the foot in your attempt to bring AI capabilities to your users by messing up your already complex business logic.
+When this logic is handled directly inside controllers, services, message consumers, or bot-specific integrations, the
+application quickly becomes coupled to a particular channel or provider.
 
-`TalkativeBot` provides a conversation orchestration layer between your application and the bot engines, messaging platforms, and AI tools around it.
+**Don't shoot yourself in the foot** in your attempt to bring AI capabilities to your users by messing up your already
+complex business logic.
 
-Wherever your business flow needs human input, you can delegate that interaction to a bot while keeping your core application logic independent from the transport layer.
+### The Solution
 
-``TalkativeBot`` helps you model the interaction as a conversation:
+TalkativeBot provides a conversation orchestration layer between your application and the bot engines, messaging
+platforms, and AI tools around it.
 
-- ask a question
-- wait for an answer
-- persist the pending interaction
-- resume the flow when the answer arrives
-- route messages through the appropriate channel
+Wherever your business flow needs human input, you can delegate that interaction to a bot while keeping your core
+application logic independent from the transport layer.
 
-The goal is not to replace AI engines or chat platforms. The goal is to give your application a predictable layer for managing conversations across them.
-`TalkativeBot` provides these abstractions without tying your conversation logic to a specific transport.
+**TalkativeBot helps you model interactions as conversations:**
+
+- Ask a question
+- Wait for an answer
+- Persist the pending interaction
+- Resume the flow when the answer arrives
+- Route messages through the appropriate channel
+
+**The goal is not to replace AI engines or chat platforms.** The goal is to give your application a predictable layer
+for managing conversations across them—providing these abstractions without tying your conversation logic to a specific
+transport.
+
+## Key Features
+
+- **Conversation Flow Abstraction** – Define complex, stateful conversations as reusable components
+- **Multi-Channel Support** – Deploy the same conversation across Console, REST API, Spring Cloud Stream, and custom
+  channels
+- **Flexible Persistence** – Choose from in-memory, Redis, or JPA storage, or implement your own
+- **Question/Answer Handling** – Built-in support for text input, single/multiple choice, and custom question types
+- **Spring Boot Integration** – Auto-configuration and starter for seamless integration
+- **Extensible Architecture** – Add custom channels (WhatsApp, Telegram, Facebook Messenger) and storage backends
 
 ## Modules
 
-| Module | Purpose |
-|---|---|
-| talkativebot-core | Framework-independent conversation engine |
-| talkativebot-spring-boot-starter | Spring Boot auto-configuration and integrations |
-
-## Features
-
-- Conversation flow abstraction
-- Question/answer handling
-- Pending interaction persistence
-- Spring Boot auto-configuration
-- Console channel implementation for quick testing
-- Spring Cloud Stream channel implementation and integration
-- Rest API channel implementation
-- Ability to add custom channels (eg. WhatsApp, Facebook Messenger, Telegram, etc.)
-- Default in-memory store for development/testing
-- Redis store implementation
-- JPA store implementation
-- Ability to add custom stores (eg. File, DynamoDB, etc.)
+| Module                             | Purpose                                         |
+|------------------------------------|-------------------------------------------------|
+| `talkativebot-core`                | Framework-independent conversation engine       |
+| `talkativebot-spring-boot-starter` | Spring Boot auto-configuration and integrations |
 
 ## Requirements
 - Java 17+
@@ -67,7 +108,7 @@ The goal is not to replace AI engines or chat platforms. The goal is to give you
 <dependency>
     <groupId>com.atchurey.tools</groupId>
     <artifactId>talkativebot-spring-boot-starter</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -75,7 +116,7 @@ The goal is not to replace AI engines or chat platforms. The goal is to give you
 ## Spring Boot Configuration
 
 ```properties
-atchurey.tools.talkativebot.pending-interaction.store=memory | redis | jpa
+atchurey.tools.talkativebot.pending-interaction.store=memory | redis | database
 atchurey.tools.talkativebot.pending-interaction.ttl=30m
 atchurey.tools.talkativebot.topic-base-package=com.example.basepackage
 atchurey.tools.talkativebot.channels.enabled=true
@@ -88,7 +129,7 @@ atchurey.tools.talkativebot.channels.console-enabled=true
 
 1. `memory` - In-memory store.
 2. `redis` - Redis store.
-3. `jpa` - JPA store.
+3. `database` - JPA store.
 
 ## Quick Start
 Manually play a conversation by calling `TalkativeBot.play(...)`.
@@ -134,14 +175,14 @@ public class SaleConversationStartResolver implements ConversationStartResolver 
 ```
 
 ## Conversation Sample
-Conversations are stateful. A `Conversation` orchestratrates the flow based on the associated `Topic` definitions. It is defined by a class that extends `AbstractConversation`. 
+Conversations are stateful. A `Conversation` orchestrates the flow based on the associated `Topic` definitions. It is defined by a class that extends `AbstractConversation`. 
 You can simply only override the `onTopicPlayed` method to handle topic events. If you need to handle conversation-level flow completion, 
 override the `onConversationClosed` callback,
 
 ```java
 public class SaleConversation extends AbstractConversation<String> {
 
-    public SaleConversation(`TalkativeBot` bot, ConversationAddress address) {
+    public SaleConversation(TalkativeBot bot, ConversationAddress address) {
         super(bot, address);
     }
 
@@ -200,7 +241,7 @@ public class PaymentMethodTopic extends AbstractTopic {
 		Question question = new Question("Choose your payment method.",
 				new Option[]{
 						new Option(0, "CARD"),
-						new Option(1, "MOBILE_MONEY")
+						new Option(1, "CASH")
 				}
 		);
 

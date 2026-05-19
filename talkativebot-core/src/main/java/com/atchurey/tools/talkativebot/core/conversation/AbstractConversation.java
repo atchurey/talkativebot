@@ -21,7 +21,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-public abstract class AbstractConversation<T> implements Conversation<T> {
+public abstract class AbstractConversation<T>
+        implements Conversation<T>, RuntimeAwareConversation {
 
     private static final long serialVersionUID = 1L;
 
@@ -31,6 +32,8 @@ public abstract class AbstractConversation<T> implements Conversation<T> {
     protected final TalkativeBot bot;
 
     private final Facts facts = new Facts();
+
+    private transient ConversationRuntime runtime;
 
     private final ConversationAddress address;
 
@@ -54,8 +57,23 @@ public abstract class AbstractConversation<T> implements Conversation<T> {
             TopicScanner topicScanner,
             TopicFactory topicFactory
     ) {
-        this(bot, address);
+        this.bot = Objects.requireNonNull(bot, "bot must not be null");
+        this.address = Objects.requireNonNull(address, "address must not be null");
         discoverTopics(topicScanner, topicFactory);
+    }
+
+    @Override
+    public void setRuntime(ConversationRuntime runtime) {
+        this.runtime = Objects.requireNonNull(runtime, "runtime must not be null");
+    }
+
+    @Override
+    public ConversationRuntime getRuntime() {
+        if (runtime == null) {
+            throw new IllegalStateException("ConversationRuntime has not been initialized");
+        }
+
+        return runtime;
     }
 
 	protected final void discoverTopics(TopicScanner topicScanner, TopicFactory topicFactory) {

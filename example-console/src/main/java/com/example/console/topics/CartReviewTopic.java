@@ -7,14 +7,14 @@ import com.atchurey.tools.talkativebot.core.questions.Option;
 import com.atchurey.tools.talkativebot.core.questions.Question;
 import com.atchurey.tools.talkativebot.core.topic.interfaces.Topic;
 import com.atchurey.tools.talkativebot.springbootstarter.topic.AbstractTopic;
-import com.example.console.conversations.SaleConversation;
+import com.example.console.conversations.CheckoutConversation;
 import org.springframework.lang.NonNull;
 
 @Topic(
 		key = "cart_review",
 		name = "Cart Review",
 		description = "Review your cart",
-		conversation = SaleConversation.class,
+		conversation = CheckoutConversation.class,
 		next = "delivery_method",
 		order = 1
 )

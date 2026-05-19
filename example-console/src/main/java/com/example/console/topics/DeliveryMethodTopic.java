@@ -7,14 +7,14 @@ import com.atchurey.tools.talkativebot.core.questions.Option;
 import com.atchurey.tools.talkativebot.core.questions.Question;
 import com.atchurey.tools.talkativebot.core.topic.interfaces.Topic;
 import com.atchurey.tools.talkativebot.springbootstarter.topic.AbstractTopic;
-import com.example.console.conversations.SaleConversation;
+import com.example.console.conversations.CheckoutConversation;
 import org.springframework.lang.NonNull;
 
 @Topic(
 		key = "delivery_method",
 		name = "Delivery Method",
 		description = "Choose your delivery method",
-		conversation = SaleConversation.class,
+		conversation = CheckoutConversation.class,
 		next = "shipping_address",
 		order = 2
 )

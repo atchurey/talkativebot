@@ -1,21 +1,15 @@
-package com.example.console.conversations;
+package com.demo.examplestreamredisagentone;
 
 import com.atchurey.tools.talkativebot.core.bot.TalkativeBot;
 import com.atchurey.tools.talkativebot.core.channel.ConversationAddress;
 import com.atchurey.tools.talkativebot.core.conversation.AbstractConversation;
-import com.atchurey.tools.talkativebot.core.conversation.Facts;
 import com.atchurey.tools.talkativebot.core.topic.ConversationTopic;
 
 import java.util.concurrent.CompletableFuture;
 
-/**
-* A standard conversation declaration, overriding probably the two most useful callbacks, onTopicPlayed and onConversationClosed.
- *
- * In onConversationClosed, you can collect the final facts (details) of the conversation.
-* */
-public class SaleConversation extends AbstractConversation<String> {
+public class JokeFactoryConversation extends AbstractConversation<String> {
 
-    public SaleConversation(TalkativeBot bot, ConversationAddress address) {
+    public JokeFactoryConversation(TalkativeBot bot, ConversationAddress address) {
         super(bot, address);
     }
 
@@ -28,10 +22,15 @@ public class SaleConversation extends AbstractConversation<String> {
         return CompletableFuture.completedFuture("Played topic: " + topic.getKey());
     }
 
+    public JokeFactoryRuntime jokeFactoryRuntime() {
+        return getRuntime().get(
+                JokeFactoryRuntimeKeys.RUNTIME,
+                JokeFactoryRuntime.class
+        );
+    }
+
     @Override
     protected CompletableFuture<String> onConversationClosed() {
-        Facts checkoutDetails =  getFacts();
-        logger.info("Checkout details: {}", checkoutDetails);
         return CompletableFuture.completedFuture("Conversation closed");
     }
 

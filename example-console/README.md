@@ -2,17 +2,16 @@
 
 
 ## What we have here
-A simple console demo to play a checkout flow. We will use an in-memory store for pending interactions and play
+A simple console demo to play a conversation flow. We will use an in-memory store for pending interactions and play
 the conversation manually.
 
 ### Highlighted Features
-- Defining a simple conversation (SaleConversation)
+- Defining a simple conversation (CheckoutConversation)
 - Defining topics for a checkout flow, topics are annoteted with `@Topic`
 - TalkativeBot properties configuration for this scenario
 - Spring Boot starter for `TalkativeBot` autoconfigures the bot, scanning for topics for the conversation
 - An in-memory store for pending interactions is autoconfigured
 - Console input/output channels autoconfigured
-
 
 ## Requirements
 - Java 17+

@@ -14,10 +14,6 @@
 	<description>A Spring Boot starter for talkativebot</description>
 	<url>https://github.com/atchurey/talkativebot</url>
 
-	<properties>
-		<spring-cloud.version>2024.0.0</spring-cloud.version>
-	</properties>
-
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
