@@ -54,11 +54,19 @@
 
     <distributionManagement>
         <snapshotRepository>
-            <id>central</id>
-            <name>Central Portal Snapshots</name>
-            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+            <id>nexus.atchurey</id>
+            <name>Nexus Snapshots</name>
+            <url>https://nexus.atchurey.com/repository/maven-snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
+
+    <repositories>
+        <repository>
+            <id>nexus.atchurey</id>
+            <name>Nexus Public</name>
+            <url>https://nexus.atchurey.com/repository/maven-public/</url>
+        </repository>
+    </repositories>
 
     <modules>
         <module>talkativebot-core</module>
