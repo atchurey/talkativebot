@@ -1,0 +1,27 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.atchurey.tools</groupId>
+        <artifactId>talkativebot-parent</artifactId>
+        <version>0.0.5-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>talkativebot-docs</artifactId>
+    <name>talkativebot-docs</name>
+    <description>Reference documentation for TalkativeBot</description>
+
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <skipPublishing>true</skipPublishing>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.asciidoctor</groupId>
+                <artifactId>asciidoctor-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

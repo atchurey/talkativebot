@@ -1,0 +1,28 @@
+server:
+  port: 8081
+spring:
+  application:
+    name: agent-two
+  cloud:
+    function:
+      definition: agentTwoInput
+    stream:
+      output-bindings: agentTwoOutput-out-0
+      bindings:
+        agentTwoInput-in-0:
+          destination: agent-two-input
+          group: agent-two-input-group
+          binder: local_rabbit
+        agentTwoOutput-out-0:
+          destination: agent-one-input
+          binder: local_rabbit
+      binders:
+        local_rabbit:
+          type: rabbit
+          environment:
+            spring:
+              rabbitmq:
+                host: localhost
+                port: 5672
+                username: admin
+                password: admin
