@@ -1,9 +1,9 @@
 # TalkativeBot
 
-> A Java 17 / Spring Boot 3 library for building stateful conversation flows across multiple channels.
+> A Java 17 / Spring Boot 3.4 library for building stateful conversation flows across multiple channels.
 
 [![Java](https://img.shields.io/badge/Java-17+-orange.svg)](https://www.oracle.com/java/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.0+-green.svg)](https://spring.io/projects/spring-boot)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4+-green.svg)](https://spring.io/projects/spring-boot)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 
@@ -11,6 +11,7 @@
 
 - [Overview](#overview)
 - [What It Is Not](#what-it-is-not)
+- [Architecture](#architecture)
 - [Why TalkativeBot?](#why-talkativebot)
 - [Key Features](#key-features)
 - [Modules](#modules)
@@ -24,7 +25,6 @@
     - [Channels](#channels)
 - [Persistence](#persistence)
 - [Examples](#examples)
-- [License](#license)
 
 ## Overview
 
@@ -38,6 +38,18 @@ TalkativeBot is **not a workflow engine, chatbot platform, or AI framework**. It
 ## Architecture
 
 TalkativeBot acts as a central orchestration hub that decouples business conversation logic from the underlying messaging channels and infrastructure.
+
+![TalkativeBot architecture: transport channels, Spring starter adapters, core orchestration, your application layer, and pending interaction persistence](docs/images/architecture.svg)
+
+The flow is intentionally simple: **ask → persist pending state → resume when the user replies**, without rewriting your conversation logic per channel.
+
+| Layer | Responsibility |
+|-------|----------------|
+| **Transport** | Console, Spring Cloud Stream, or custom channels (pluggable) |
+| **talkativebot-spring-boot-starter** | Auto-configuration, channel adapters, topic scanning, store backends |
+| **talkativebot-core** | `TalkativeBot` orchestration — `handle()`, `play()`, `ask()` |
+| **Your application** | `AbstractConversation`, `@Topic` classes, `ConversationStartResolver` |
+| **Persistence** | `PendingInteractionStore` — memory, Redis, or JPA (question + facts + TTL) |
 
 ## Why TalkativeBot?
 
@@ -118,7 +130,7 @@ The generated documentation will be available at:
 
 ## Requirements
 - Java 17+
-- Spring Boot 3.0+
+- Spring Boot 3.4+
 
 ## Installation
 ### Maven
@@ -127,7 +139,7 @@ The generated documentation will be available at:
 <dependency>
     <groupId>com.atchurey.tools</groupId>
     <artifactId>talkativebot-spring-boot-starter</artifactId>
-    <version>0.0.3-SNAPSHOT</version>
+    <version>0.0.5-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -230,8 +242,8 @@ For a given conversation, you can define multiple topics. Each topic is a statef
 3. The topic `description` is to provide a brief description of the topic.
 4. The topic `conversation` is the class that this `Topic` is part of.
 5. The topic `canReplay` flag indicates whether the topic can be replayed after it has been closed/completed.
-6. The topic `next` is the key of the next topic to be played.
-7. The topic `order` is the order in which the topic is played (when using `next`, `order` is ignored).
+6. The topic `next` is the key of the next topic to play after the current one finishes. If set and the target topic is playable, it takes precedence over `order` for that step.
+7. The topic `order` controls registration sort order and selects the first playable topic when there is no current topic, or when `next` is unset, points to a missing topic, or the target is not playable.
 
 ```java
 @Topic(
