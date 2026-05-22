@@ -71,9 +71,6 @@ Many business flows eventually need human interaction:
 When this logic is handled directly inside controllers, services, message consumers, or bot-specific integrations, the
 application quickly becomes coupled to a particular channel or provider.
 
-**Don't shoot yourself in the foot** in your attempt to bring AI capabilities to your users by messing up your already
-complex business logic.
-
 ### The Solution
 
 TalkativeBot provides a conversation orchestration layer between your application and the bot engines, messaging
@@ -146,15 +143,17 @@ The generated documentation will be available at:
 
 ## Spring Boot Configuration
 
+> [!IMPORTANT]
+> Configure `atchurey.tools.talkativebot.topic-base-package` to the package that contains your `@Topic` classes (for example `com.example.myapp.topics`). **Topic scanning does not run without this property** — conversations will start with no topics registered.
+
 ```properties
 atchurey.tools.talkativebot.pending-interaction.store=memory | redis | database
 atchurey.tools.talkativebot.pending-interaction.ttl=30m
+# Required — base package for @Topic classpath scanning
 atchurey.tools.talkativebot.topic-base-package=com.example.basepackage
 atchurey.tools.talkativebot.channels.enabled=true
 atchurey.tools.talkativebot.channels.console-enabled=true
 ```
-> **Important:** Configure `atchurey.tools.talkativebot.topic-base-package`
-> to enable topic scanning.
 
 ## Persistence Options
 
