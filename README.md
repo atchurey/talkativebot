@@ -21,8 +21,8 @@
 - [Configuration](#configuration)
 - [Core Concepts](#core-concepts)
     - [Conversations](#conversations)
+    - [Conversation Runtime](#conversation-runtime)
     - [Topics](#topics)
-    - [Channels](#channels)
 - [Persistence](#persistence)
 - [Examples](#examples)
 
@@ -204,7 +204,14 @@ public class SaleConversationStartResolver implements ConversationStartResolver 
 }
 ```
 
-## Conversation Sample
+## Core Concepts
+
+TalkativeBot models human-in-the-loop work as **conversations** made of **topics**. **Facts** hold durable step state across async replies; the **conversation runtime** holds per-JVM infrastructure (clients, services) that should not be serialized into pending interactions.
+
+See `example-stream-redis/agent-one` for a full distributed example (Redis pending store + Spring Cloud Stream).
+
+### Conversations
+
 Conversations are stateful. A `Conversation` orchestrates the flow based on the associated `Topic` definitions. It is defined by a class that extends `AbstractConversation`. 
 You can simply only override the `onTopicPlayed` method to handle topic events. If you need to handle conversation-level flow completion, 
 override the `onConversationClosed` callback,
@@ -233,7 +240,74 @@ public class SaleConversation extends AbstractConversation<String> {
 }
 ```
 
-## Topic Sample
+### Conversation Runtime
+
+`ConversationRuntime` is an in-memory resource bag for infrastructure your conversation type needs (`WebClient`, repositories, compiled templates, API helpers). It is **not** durable state. Put user choices, step flags, and identifiers in `Facts` so they survive async gaps, multi-service instances, or a service restart.
+
+- One runtime per conversation **type** per JVM (shared clients, not per user session).
+- Each application instance builds its own registry. No distributed runtime cache needed for expensive resources.
+- `TalkativeBot` hydrates the runtime on every `play()` and inbound `handle()` resume.
+
+Register resources with a `ConversationRuntimeInitializer` bean (`example-stream-redis/agent-one`):
+
+```java
+@Component
+public class JokeFactoryConversationRuntimeInitializer
+        implements ConversationRuntimeInitializer {
+
+    private final WebClient.Builder webClientBuilder;
+
+    public JokeFactoryConversationRuntimeInitializer(WebClient.Builder webClientBuilder) {
+        this.webClientBuilder = webClientBuilder;
+    }
+
+    @Override
+    public boolean supports(Class<? extends Conversation<?>> conversationType) {
+        return JokeFactoryConversation.class.equals(conversationType);
+    }
+
+    @Override
+    public ConversationRuntime initialize(Class<? extends Conversation<?>> conversationType) {
+        WebClient webClient = webClientBuilder
+                .baseUrl("https://official-joke-api.appspot.com")
+                .build();
+
+        JokeFactoryRuntime runtime = new JokeFactoryRuntime(webClient);
+
+        return DefaultConversationRuntime.builder()
+                .put(JokeFactoryRuntimeKeys.RUNTIME, runtime)
+                .put(JokeFactoryRuntimeKeys.JOKE_WEB_CLIENT, webClient)
+                .build();
+    }
+}
+```
+
+Expose helpers on the conversation (`JokeFactoryConversation` in agent-one):
+
+```java
+public JokeFactoryRuntime jokeFactoryRuntime() {
+    return getRuntime().get(
+            JokeFactoryRuntimeKeys.RUNTIME,
+            JokeFactoryRuntime.class
+    );
+}
+```
+
+Use the runtime in topics for I/O; keep flow state in facts (`JokeFactoryTopic`):
+
+```java
+@Override
+protected void doPlay(Facts facts) {
+    JokeFactoryRuntime runtime = conversation.jokeFactoryRuntime();
+	
+    JokeFactoryRuntime.Joke joke = runtime.generateJoke(facts.get("joke_type"));
+    getBot().ask(conversation, this, Question.choice(joke.getSetup(),
+            new Option[]{ new Option(joke.getId(), "What?") }));
+}
+
+```
+
+### Topics
 
 For a given conversation, you can define multiple topics. Each topic is a stateful conversation flow. 
 1. The topic `key` is used to identify the topic in the conversation state.
