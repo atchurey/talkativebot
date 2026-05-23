@@ -1,6 +1,6 @@
 # TalkativeBot
 
-> A Java 17 / Spring Boot 3.4 library for building stateful conversation flows across multiple channels.
+> A Java 17 / Spring Boot 3.4 conversation workflow runtime for building stateful, resumable, channel-agnostic, humam-in-the-loop flows.
 
 [![Java](https://img.shields.io/badge/Java-17+-orange.svg)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4+-green.svg)](https://spring.io/projects/spring-boot)
@@ -15,25 +15,27 @@
 - [Why TalkativeBot?](#why-talkativebot)
 - [Key Features](#key-features)
 - [Modules](#modules)
+- [Documentation](#documentation)
 - [Requirements](#requirements)
 - [Installation](#installation)
-- [Getting Started](#getting-started)
-- [Configuration](#configuration)
+- [Spring Boot Configuration](#spring-boot-configuration)
+- [Persistence Options](#persistence-options)
+- [Quick Start](#quick-start)
 - [Core Concepts](#core-concepts)
     - [Conversations](#conversations)
     - [Conversation Runtime](#conversation-runtime)
     - [Topics](#topics)
-- [Persistence](#persistence)
-- [Examples](#examples)
+- [Production-readiness](#production-readiness)
 
 ## Overview
 
 TalkativeBot provides a conversation orchestration layer that decouples your business logic from chat platforms,
-messaging systems, and AI engines. Build structured, stateful conversations once and deploy them across multiple
-channels without rewriting your interaction logic.
+messaging systems, and AI engines. It has a small core engine plus a Spring Boot starter for auto-configuration,
+pluggable input/output channels, and durable pending-interaction storage using
+in-memory, Redis, or JPA-backed stores.
 
 ## What It Is Not
-TalkativeBot is **not a workflow engine, chatbot platform, or AI framework**. It's a lightweight Java/Spring conversation state manager for human-in-the-loop workflows. It focuses on asking questions, persisting pending interactions, resuming conversations, and keeping transport-specific code outside business logic.
+TalkativeBot is **not a workflow engine (eg. no BPMN files), chatbot platform, or AI framework**. It's a lightweight Java/Spring conversation state manager for human-in-the-loop workflows. It focuses on asking questions, persisting pending interactions, resuming conversations, and keeping transport-specific code outside business logic.
 
 ## Architecture
 
@@ -358,3 +360,28 @@ public class PaymentMethodTopic extends AbstractTopic {
 	}
 }
 ```
+## Production-readiness
+
+TalkativeBot is currently pre-v1.0. Till then, it is suitable for prototypes, internal tools, and controlled production experiments.
+
+Supported:
+- resumable pending interactions
+- pluggable output/input channels
+- in-memory, Redis, and JPA pending stores
+- Spring Boot auto-configuration
+- conversation runtime rehydration
+
+Current limitations:
+- no built-in distributed locking
+- no built-in retry/dead-letter strategy
+- no built-in metrics/tracing module yet
+- conversation API may change before 1.0
+
+Find the TODO list in the [reference documentation](#documentation).
+
+## Versioning
+
+TalkativeBot follows semantic versioning after 1.0.
+
+Before 1.0, public APIs may change between minor versions. Public extension points
+are documented in the [reference documentation](#documentation).
