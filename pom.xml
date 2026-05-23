@@ -187,7 +187,7 @@
                     <preparationGoals>clean verify</preparationGoals>
                     <goals>deploy</goals>
                     <releaseProfiles>central-publish</releaseProfiles>
-                    <arguments>-DskipTests=false -Dgpg.keyname=${gpg.keyname}</arguments>
+                    <arguments>-DskipTests=false -Dgpg.keyname=${gpg.keyname} -pl :talkativebot-parent,talkativebot-core,talkativebot-spring-boot-starter -am</arguments>
                 </configuration>
             </plugin>
         </plugins>

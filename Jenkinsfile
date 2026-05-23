@@ -125,7 +125,7 @@ pipeline {
                         ./mvnw -B -s .jenkins/settings.xml \
                             -pl "${MAVEN_PUBLISH_MODULES}" -am \
                             -Dgpg.keyname="${GPG_KEY_ID}" \
-                            -Darguments="-DskipTests=false -Dgpg.keyname=${GPG_KEY_ID}" \
+                            -Darguments="-DskipTests=false -Dgpg.keyname=${GPG_KEY_ID} -pl ${MAVEN_PUBLISH_MODULES} -am" \
                             -DlocalCheckout=true \
                             -DscmCommentPrefix="[skip ci]" \
                             release:clean release:prepare release:perform
