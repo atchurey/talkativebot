@@ -13,6 +13,8 @@ server:
 spring:
   application:
     name: agent-one
+  config:
+    import: optional:file:.env[.properties]
   data:
     redis:
       host: localhost
@@ -39,5 +41,5 @@ spring:
               rabbitmq:
                 host: localhost
                 port: 5672
-                username: admin
-                password: admin
+                username: ${RABBITMQ_USERNAME}
+                password: ${RABBITMQ_PASSWORD}
