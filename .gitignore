@@ -34,3 +34,4 @@ build/
 /.env
 .jenkins/settings.effective.xml
 /.jenkins/README.md
+/.jenkins/README.md
