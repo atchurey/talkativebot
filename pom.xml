@@ -186,7 +186,8 @@
                     <localCheckout>true</localCheckout>
                     <preparationGoals>clean verify</preparationGoals>
                     <goals>deploy</goals>
-                    <arguments>-DskipTests=false -Pcentral-publish</arguments>
+                    <releaseProfiles>central-publish</releaseProfiles>
+                    <arguments>-DskipTests=false -Dgpg.keyname=${gpg.keyname}</arguments>
                 </configuration>
             </plugin>
         </plugins>
@@ -222,7 +223,6 @@
                                 </goals>
                                 <configuration>
                                     <keyname>${gpg.keyname}</keyname>
-                                    <passphraseServerId>gpg-passphrase</passphraseServerId>
                                     <gpgArguments>
                                         <arg>--pinentry-mode</arg>
                                         <arg>loopback</arg>
