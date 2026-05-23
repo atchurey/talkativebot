@@ -32,3 +32,5 @@ build/
 
 **/.DS_Store
 /.env
+.jenkins/settings.effective.xml
+/.jenkins/README.md

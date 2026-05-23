@@ -1,14 +1,17 @@
 # TalkativeBot
 
-> A Java 17 / Spring Boot 3 library for building stateful conversation flows across multiple channels.
+> A Java 17 / Spring Boot 3.4 library for building stateful conversation flows across multiple channels.
 
 [![Java](https://img.shields.io/badge/Java-17+-orange.svg)](https://www.oracle.com/java/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.0+-green.svg)](https://spring.io/projects/spring-boot)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4+-green.svg)](https://spring.io/projects/spring-boot)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+
 
 ## Table of Contents
 
 - [Overview](#overview)
 - [What It Is Not](#what-it-is-not)
+- [Architecture](#architecture)
 - [Why TalkativeBot?](#why-talkativebot)
 - [Key Features](#key-features)
 - [Modules](#modules)
@@ -18,11 +21,10 @@
 - [Configuration](#configuration)
 - [Core Concepts](#core-concepts)
     - [Conversations](#conversations)
+    - [Conversation Runtime](#conversation-runtime)
     - [Topics](#topics)
-    - [Channels](#channels)
 - [Persistence](#persistence)
 - [Examples](#examples)
-- [License](#license)
 
 ## Overview
 
@@ -36,6 +38,18 @@ TalkativeBot is **not a workflow engine, chatbot platform, or AI framework**. It
 ## Architecture
 
 TalkativeBot acts as a central orchestration hub that decouples business conversation logic from the underlying messaging channels and infrastructure.
+
+![TalkativeBot architecture: transport channels, Spring starter adapters, core orchestration, your application layer, and pending interaction persistence](docs/images/architecture.svg)
+
+The flow is intentionally simple: **ask → persist pending state → resume when the user replies**, without rewriting your conversation logic per channel.
+
+| Layer | Responsibility |
+|-------|----------------|
+| **Transport** | Console, Spring Cloud Stream, or custom channels (pluggable) |
+| **talkativebot-spring-boot-starter** | Auto-configuration, channel adapters, topic scanning, store backends |
+| **talkativebot-core** | `TalkativeBot` orchestration — `handle()`, `play()`, `ask()` |
+| **Your application** | `AbstractConversation`, `@Topic` classes, `ConversationStartResolver` |
+| **Persistence** | `PendingInteractionStore` — memory, Redis, or JPA (question + facts + TTL) |
 
 ## Why TalkativeBot?
 
@@ -56,9 +70,6 @@ Many business flows eventually need human interaction:
 
 When this logic is handled directly inside controllers, services, message consumers, or bot-specific integrations, the
 application quickly becomes coupled to a particular channel or provider.
-
-**Don't shoot yourself in the foot** in your attempt to bring AI capabilities to your users by messing up your already
-complex business logic.
 
 ### The Solution
 
@@ -116,7 +127,7 @@ The generated documentation will be available at:
 
 ## Requirements
 - Java 17+
-- Spring Boot 3.0+
+- Spring Boot 3.4+
 
 ## Installation
 ### Maven
@@ -125,22 +136,24 @@ The generated documentation will be available at:
 <dependency>
     <groupId>com.atchurey.tools</groupId>
     <artifactId>talkativebot-spring-boot-starter</artifactId>
-    <version>0.0.3-SNAPSHOT</version>
+    <version>0.0.5-SNAPSHOT</version>
 </dependency>
 ```
 
 
 ## Spring Boot Configuration
 
+> [!IMPORTANT]
+> Configure `atchurey.tools.talkativebot.topic-base-package` to the package that contains your `@Topic` classes (for example `com.example.myapp.topics`). **Topic scanning does not run without this property** — conversations will start with no topics registered.
+
 ```properties
 atchurey.tools.talkativebot.pending-interaction.store=memory | redis | database
 atchurey.tools.talkativebot.pending-interaction.ttl=30m
+# Required — base package for @Topic classpath scanning
 atchurey.tools.talkativebot.topic-base-package=com.example.basepackage
 atchurey.tools.talkativebot.channels.enabled=true
 atchurey.tools.talkativebot.channels.console-enabled=true
 ```
-> **Important:** Configure `atchurey.tools.talkativebot.topic-base-package`
-> to enable topic scanning.
 
 ## Persistence Options
 
@@ -191,7 +204,14 @@ public class SaleConversationStartResolver implements ConversationStartResolver 
 }
 ```
 
-## Conversation Sample
+## Core Concepts
+
+TalkativeBot models human-in-the-loop work as **conversations** made of **topics**. **Facts** hold durable step state across async replies; the **conversation runtime** holds per-JVM infrastructure (clients, services) that should not be serialized into pending interactions.
+
+See `example-stream-redis/agent-one` for a full distributed example (Redis pending store + Spring Cloud Stream).
+
+### Conversations
+
 Conversations are stateful. A `Conversation` orchestrates the flow based on the associated `Topic` definitions. It is defined by a class that extends `AbstractConversation`. 
 You can simply only override the `onTopicPlayed` method to handle topic events. If you need to handle conversation-level flow completion, 
 override the `onConversationClosed` callback,
@@ -220,7 +240,74 @@ public class SaleConversation extends AbstractConversation<String> {
 }
 ```
 
-## Topic Sample
+### Conversation Runtime
+
+`ConversationRuntime` is an in-memory resource bag for infrastructure your conversation type needs (`WebClient`, repositories, compiled templates, API helpers). It is **not** durable state. Put user choices, step flags, and identifiers in `Facts` so they survive async gaps, multi-service instances, or a service restart.
+
+- One runtime per conversation **type** per JVM (shared clients, not per user session).
+- Each application instance builds its own registry. No distributed runtime cache needed for expensive resources.
+- `TalkativeBot` hydrates the runtime on every `play()` and inbound `handle()` resume.
+
+Register resources with a `ConversationRuntimeInitializer` bean (`example-stream-redis/agent-one`):
+
+```java
+@Component
+public class JokeFactoryConversationRuntimeInitializer
+        implements ConversationRuntimeInitializer {
+
+    private final WebClient.Builder webClientBuilder;
+
+    public JokeFactoryConversationRuntimeInitializer(WebClient.Builder webClientBuilder) {
+        this.webClientBuilder = webClientBuilder;
+    }
+
+    @Override
+    public boolean supports(Class<? extends Conversation<?>> conversationType) {
+        return JokeFactoryConversation.class.equals(conversationType);
+    }
+
+    @Override
+    public ConversationRuntime initialize(Class<? extends Conversation<?>> conversationType) {
+        WebClient webClient = webClientBuilder
+                .baseUrl("https://official-joke-api.appspot.com")
+                .build();
+
+        JokeFactoryRuntime runtime = new JokeFactoryRuntime(webClient);
+
+        return DefaultConversationRuntime.builder()
+                .put(JokeFactoryRuntimeKeys.RUNTIME, runtime)
+                .put(JokeFactoryRuntimeKeys.JOKE_WEB_CLIENT, webClient)
+                .build();
+    }
+}
+```
+
+Expose helpers on the conversation (`JokeFactoryConversation` in agent-one):
+
+```java
+public JokeFactoryRuntime jokeFactoryRuntime() {
+    return getRuntime().get(
+            JokeFactoryRuntimeKeys.RUNTIME,
+            JokeFactoryRuntime.class
+    );
+}
+```
+
+Use the runtime in topics for I/O; keep flow state in facts (`JokeFactoryTopic`):
+
+```java
+@Override
+protected void doPlay(Facts facts) {
+    JokeFactoryRuntime runtime = conversation.jokeFactoryRuntime();
+	
+    JokeFactoryRuntime.Joke joke = runtime.generateJoke(facts.get("joke_type"));
+    getBot().ask(conversation, this, Question.choice(joke.getSetup(),
+            new Option[]{ new Option(joke.getId(), "What?") }));
+}
+
+```
+
+### Topics
 
 For a given conversation, you can define multiple topics. Each topic is a stateful conversation flow. 
 1. The topic `key` is used to identify the topic in the conversation state.
@@ -228,8 +315,8 @@ For a given conversation, you can define multiple topics. Each topic is a statef
 3. The topic `description` is to provide a brief description of the topic.
 4. The topic `conversation` is the class that this `Topic` is part of.
 5. The topic `canReplay` flag indicates whether the topic can be replayed after it has been closed/completed.
-6. The topic `next` is the key of the next topic to be played.
-7. The topic `order` is the order in which the topic is played (when using `next`, `order` is ignored).
+6. The topic `next` is the key of the next topic to play after the current one finishes. If set and the target topic is playable, it takes precedence over `order` for that step.
+7. The topic `order` controls registration sort order and selects the first playable topic when there is no current topic, or when `next` is unset, points to a missing topic, or the target is not playable.
 
 ```java
 @Topic(
@@ -271,5 +358,3 @@ public class PaymentMethodTopic extends AbstractTopic {
 	}
 }
 ```
-
-## License
