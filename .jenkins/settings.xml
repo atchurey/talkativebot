@@ -6,24 +6,24 @@
     <servers>
         <server>
             <id>central</id>
-            <username>${CENTRAL_USERNAME}</username>
-            <password>${CENTRAL_PASSWORD}</password>
+            <username>${env.CENTRAL_USERNAME}</username>
+            <password>${env.CENTRAL_PASSWORD}</password>
         </server>
         <server>
-            <id>${GPG_KEY_ID}</id>
-            <passphrase>${GPG_PASSPHRASE}</passphrase>
+            <id>gpg-passphrase</id>
+            <passphrase>${env.GPG_PASSPHRASE}</passphrase>
         </server>
         <server>
             <id>nexus.atchurey</id>
-            <username>${NEXUS_USERNAME}</username>
-            <password>${NEXUS_PASSWORD}</password>
+            <username>${env.NEXUS_USERNAME}</username>
+            <password>${env.NEXUS_PASSWORD}</password>
         </server>
     </servers>
 
     <mirrors>
         <mirror>
             <id>nexus.atchurey</id>
-            <url>${NEXUS_MIRROR_URL}</url>
+            <url>http://nexus:8081/repository/maven-public/</url>
             <mirrorOf>external:*</mirrorOf>
         </mirror>
     </mirrors>

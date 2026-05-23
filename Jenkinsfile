@@ -15,8 +15,6 @@ pipeline {
         GITHUB_REPO_URL = 'github.com/atchurey/talkativebot.git'
         GITHUB_GIT_HTTP_ORIGIN = 'https://github.com/atchurey/talkativebot.git'
         MAVEN_PUBLISH_MODULES = ':talkativebot-parent,talkativebot-core,talkativebot-spring-boot-starter'
-        // Set GPG_KEY_ID on the Jenkins controller (docker-compose .env) — long key id from gpg --list-secret-keys
-        MAVEN_SETTINGS = '.jenkins/settings.effective.xml'
     }
 
     stages {
@@ -48,10 +46,7 @@ pipeline {
                 ]) {
                     sh '''
                         set -e
-                        chmod +x mvnw .jenkins/prepare-settings.sh
-                        export NEXUS_MIRROR_URL="${NEXUS_MIRROR_URL:-http://nexus:8081/repository/maven-public/}"
-                        .jenkins/prepare-settings.sh "${MAVEN_SETTINGS}"
-                        ./mvnw -B -s "${MAVEN_SETTINGS}" \
+                        ./mvnw -B -s .jenkins/settings.xml \
                             -pl "${MAVEN_PUBLISH_MODULES}" -am \
                             clean deploy
                     '''
@@ -73,10 +68,7 @@ pipeline {
                 ]) {
                     sh '''
                         set -e
-                        chmod +x mvnw .jenkins/prepare-settings.sh
-                        export NEXUS_MIRROR_URL="${NEXUS_MIRROR_URL:-http://nexus:8081/repository/maven-public/}"
-                        .jenkins/prepare-settings.sh "${MAVEN_SETTINGS}"
-                        ./mvnw -B -s "${MAVEN_SETTINGS}" \
+                        ./mvnw -B -s .jenkins/settings.xml \
                             -pl "${MAVEN_PUBLISH_MODULES}" -am \
                             clean verify
                     '''
@@ -129,12 +121,7 @@ pipeline {
 
                         export GITHUB_GIT_HTTP_ORIGIN="$AUTHENTICATED_GITHUB_URL"
 
-                        chmod +x mvnw .jenkins/prepare-settings.sh
-                        export GPG_KEY_ID="${GPG_KEY_ID}"
-                        export NEXUS_MIRROR_URL="${NEXUS_MIRROR_URL:-http://nexus:8081/repository/maven-public/}"
-                        .jenkins/prepare-settings.sh "${MAVEN_SETTINGS}"
-
-                        ./mvnw -B -s "${MAVEN_SETTINGS}" \
+                        ./mvnw -B -s .jenkins/settings.xml \
                             -pl "${MAVEN_PUBLISH_MODULES}" -am \
                             -Dgpg.keyname="${GPG_KEY_ID}" \
                             -DlocalCheckout=true \
