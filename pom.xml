@@ -46,9 +46,9 @@
     </developers>
 
     <scm>
-        <connection>scm:git:https://github.com/atchurey/talkativebot.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/atchurey/talkativebot.git</developerConnection>
-        <url>https://github.com/atchurey/talkativebot</url>
+        <connection>scm:git:${env.GITHUB_GIT_HTTP_ORIGIN}</connection>
+        <developerConnection>scm:git:${env.GITHUB_GIT_HTTP_ORIGIN}</developerConnection>
+        <url>${env.GITHUB_GIT_HTTP_ORIGIN}</url>
         <tag>HEAD</tag>
     </scm>
 
