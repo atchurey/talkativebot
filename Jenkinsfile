@@ -14,7 +14,7 @@ pipeline {
         GPG_PASSPHRASE_CREDENTIALS_ID = 'gpg_passphrase_cred_id'
         GITHUB_REPO_URL = 'github.com/atchurey/talkativebot.git'
         GITHUB_GIT_HTTP_ORIGIN = 'https://github.com/atchurey/talkativebot.git'
-        MAVEN_PUBLISH_MODULES = 'talkativebot-core,talkativebot-spring-boot-starter'
+        MAVEN_PUBLISH_MODULES = ':talkativebot-parent,talkativebot-core,talkativebot-spring-boot-starter'
         // Set GPG_KEY_ID on the Jenkins controller (docker-compose .env) — long key id from gpg --list-secret-keys
         MAVEN_SETTINGS = '.jenkins/settings.effective.xml'
     }
@@ -34,34 +34,7 @@ pipeline {
             }
         }
 
-        stage('Maven Verify') {
-            when {
-                anyOf {
-                    branch 'develop'
-                    branch 'master'
-                }
-            }
-            steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: "${NEXUS_CREDENTIALS_ID}",
-                        usernameVariable: 'NEXUS_USERNAME',
-                        passwordVariable: 'NEXUS_PASSWORD'
-                    )
-                ]) {
-                    sh '''
-                        set -e
-                        chmod +x mvnw .jenkins/prepare-settings.sh
-                        export GPG_KEY_ID="${GPG_KEY_ID:-}"
-                        export NEXUS_MIRROR_URL="${NEXUS_MIRROR_URL:-http://nexus:8081/repository/maven-public/}"
-                        .jenkins/prepare-settings.sh "${MAVEN_SETTINGS}"
-                        ./mvnw -B -s "${MAVEN_SETTINGS}" clean verify
-                    '''
-                }
-            }
-        }
-
-        stage('Publish Snapshot to Nexus') {
+        stage('Maven Build and Deploy Snapshot') {
             when {
                 branch 'develop'
             }
@@ -76,14 +49,36 @@ pipeline {
                     sh '''
                         set -e
                         chmod +x mvnw .jenkins/prepare-settings.sh
-                        export GPG_KEY_ID="${GPG_KEY_ID:-}"
                         export NEXUS_MIRROR_URL="${NEXUS_MIRROR_URL:-http://nexus:8081/repository/maven-public/}"
                         .jenkins/prepare-settings.sh "${MAVEN_SETTINGS}"
                         ./mvnw -B -s "${MAVEN_SETTINGS}" \
                             -pl "${MAVEN_PUBLISH_MODULES}" -am \
-                            -DskipPublishing=true \
-                            -Dgpg.skip=true \
                             clean deploy
+                    '''
+                }
+            }
+        }
+
+        stage('Maven Verify') {
+            when {
+                branch 'master'
+            }
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: "${NEXUS_CREDENTIALS_ID}",
+                        usernameVariable: 'NEXUS_USERNAME',
+                        passwordVariable: 'NEXUS_PASSWORD'
+                    )
+                ]) {
+                    sh '''
+                        set -e
+                        chmod +x mvnw .jenkins/prepare-settings.sh
+                        export NEXUS_MIRROR_URL="${NEXUS_MIRROR_URL:-http://nexus:8081/repository/maven-public/}"
+                        .jenkins/prepare-settings.sh "${MAVEN_SETTINGS}"
+                        ./mvnw -B -s "${MAVEN_SETTINGS}" \
+                            -pl "${MAVEN_PUBLISH_MODULES}" -am \
+                            clean verify
                     '''
                 }
             }
@@ -135,6 +130,7 @@ pipeline {
                         export GITHUB_GIT_HTTP_ORIGIN="$AUTHENTICATED_GITHUB_URL"
 
                         chmod +x mvnw .jenkins/prepare-settings.sh
+                        export GPG_KEY_ID="${GPG_KEY_ID}"
                         export NEXUS_MIRROR_URL="${NEXUS_MIRROR_URL:-http://nexus:8081/repository/maven-public/}"
                         .jenkins/prepare-settings.sh "${MAVEN_SETTINGS}"
 
@@ -152,8 +148,8 @@ pipeline {
 
     post {
         always {
-            archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
-            junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
+            archiveArtifacts artifacts: 'talkativebot-core/target/*.jar,talkativebot-spring-boot-starter/target/*.jar', allowEmptyArchive: true
+            junit allowEmptyResults: true, testResults: 'talkativebot-core/target/surefire-reports/*.xml,talkativebot-spring-boot-starter/target/surefire-reports/*.xml'
         }
     }
 }
