@@ -10,10 +10,6 @@
             <password>${env.CENTRAL_PASSWORD}</password>
         </server>
         <server>
-            <id>gpg-passphrase</id>
-            <passphrase>${env.GPG_PASSPHRASE}</passphrase>
-        </server>
-        <server>
             <id>nexus.atchurey</id>
             <username>${env.NEXUS_USERNAME}</username>
             <password>${env.NEXUS_PASSWORD}</password>

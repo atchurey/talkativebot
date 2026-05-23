@@ -120,10 +120,12 @@ pipeline {
                         git clean -fd
 
                         export GITHUB_GIT_HTTP_ORIGIN="$AUTHENTICATED_GITHUB_URL"
+                        export MAVEN_GPG_PASSPHRASE="${GPG_PASSPHRASE}"
 
                         ./mvnw -B -s .jenkins/settings.xml \
                             -pl "${MAVEN_PUBLISH_MODULES}" -am \
                             -Dgpg.keyname="${GPG_KEY_ID}" \
+                            -Darguments="-DskipTests=false -Dgpg.keyname=${GPG_KEY_ID}" \
                             -DlocalCheckout=true \
                             -DscmCommentPrefix="[skip ci]" \
                             release:clean release:prepare release:perform
