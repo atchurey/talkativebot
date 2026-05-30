@@ -9,7 +9,7 @@ Albert Atchurey
 :source-highlighter: coderay
 :description: Deep reference documentation for the TalkativeBot conversation orchestration library
 
-== Executive Summary
+== Summary
 
 TalkativeBot is a Java 17 / Spring Boot 3 multi-module library for building *stateful, channel-agnostic conversation flows*.
 It sits between your business application and messaging or AI transports: you model human-in-the-loop interactions as conversations and topics, the framework asks questions, persists pending state, and resumes when answers arrive.
