@@ -9,6 +9,8 @@ import lombok.Getter;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -25,16 +27,46 @@ public class IncomingMessage implements Serializable {
     private final ConversationAddress address;
     private final String text;
     private final Instant receivedAt;
+    private final String eventType;
+    private final ChannelInfo channel;
+    private final ExternalIdentity externalIdentity;
+    private final ReferralContext referral;
+    private final Map<String, Serializable> metadata;
+    private final String rawPayloadReference;
 
     public IncomingMessage(
             ConversationAddress address,
-            String text
-    ) {
+            String text) {
         this(
                 UUID.randomUUID().toString(),
                 address,
                 text,
-                Instant.now()
+                Instant.now(),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+    }
+
+    public IncomingMessage(
+            String id,
+            ConversationAddress address,
+            String text,
+            Instant receivedAt) {
+        this(
+                id,
+                address,
+                text,
+                receivedAt,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
         );
     }
 
@@ -43,12 +75,24 @@ public class IncomingMessage implements Serializable {
             @JsonProperty("id") String id,
             @JsonProperty("address") ConversationAddress address,
             @JsonProperty("text") String text,
-            @JsonProperty("receivedAt") Instant receivedAt
+            @JsonProperty("receivedAt") Instant receivedAt,
+            @JsonProperty("eventType") String eventType,
+            @JsonProperty("channel") ChannelInfo channel,
+            @JsonProperty("externalIdentity") ExternalIdentity externalIdentity,
+            @JsonProperty("referral") ReferralContext referral,
+            @JsonProperty("metadata") Map<String, Serializable> metadata,
+            @JsonProperty("rawPayloadReference") String rawPayloadReference
     ) {
         this.id = Objects.requireNonNull(id, "id must not be null");
         this.address = Objects.requireNonNull(address, "address must not be null");
         this.text = Objects.requireNonNull(text, "text must not be null");
         this.receivedAt = Objects.requireNonNull(receivedAt, "receivedAt must not be null");
+        this.eventType = eventType;
+        this.channel = channel;
+        this.externalIdentity = externalIdentity;
+        this.referral = referral;
+        this.metadata = metadata == null ? Collections.emptyMap() : Map.copyOf(metadata);
+        this.rawPayloadReference = rawPayloadReference;
     }
 
     @Override
