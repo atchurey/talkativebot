@@ -283,8 +283,12 @@ The first `OutputChannel` where `supports(address)` returns true handles deliver
 
 === Address and persistence key
 
-`ConversationAddress` carries `channel`, `userId`, `sessionId`, and `conversationId`.
-`persistenceKey()` prefers `conversationId` → `sessionId` → `userId`, so one pending interaction exists per logical conversation scope.
+`ConversationAddress` carries `channel`, `userId`, and optional `sessionId`.
+For non-legacy addresses, `persistenceKey()` prefers `sessionId` → `userId`, so one pending interaction exists per user/session address.
+
+`conversationId` is still accepted as a legacy constructor/JSON field for backward compatibility with existing integrations and persisted pending interactions.
+New integrations should not use it for workflow lanes or platform thread ids.
+Platform-specific conversation, session, or message ids belong in channel metadata, and first-class workflow separation should be handled by a scoped conversation model.
 
 == Core Concepts
 
@@ -492,8 +496,8 @@ All properties use the prefix `atchurey.tools.talkativebot`.
 
 | `channels.console-address.conversation-id`
 | String
-| `"console-conversation-1"`
-| Preferred persistence key for console demo
+| `null`
+| Legacy optional field; prefer `session-id` for new integrations
 
 | `pending-interaction.store`
 | enum
@@ -750,8 +754,7 @@ TalkativeBot talkativebot;
 ConversationAddress consoleAddress = new ConversationAddress(
     "console",
     "console-user-1",
-    "console-session-1",
-    "conversation-id-1"
+    "console-session-1"
 );
 talkativebot.play(new SaleConversation(talkativebot, consoleAddress));
 ----

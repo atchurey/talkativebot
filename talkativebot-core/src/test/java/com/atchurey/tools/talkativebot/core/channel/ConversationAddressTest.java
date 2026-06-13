@@ -9,12 +9,12 @@ class ConversationAddressTest {
 
     @Test
     void shouldCreateAddress() {
-        ConversationAddress address = new ConversationAddress("web", "user123", "session456", "conv789");
+        ConversationAddress address = new ConversationAddress("web", "user123", "session456");
 
         assertThat(address.getChannel()).isEqualTo("web");
         assertThat(address.getUserId()).isEqualTo("user123");
         assertThat(address.getSessionId()).isEqualTo("session456");
-        assertThat(address.getConversationId()).isEqualTo("conv789");
+        assertThat(address.getConversationId()).isNull();
     }
 
     @Test
@@ -25,7 +25,7 @@ class ConversationAddressTest {
     }
 
     @Test
-    void shouldReturnPersistenceKeyForConversationId() {
+    void shouldReturnLegacyPersistenceKeyForConversationId() {
         ConversationAddress address = new ConversationAddress("web", "user", "session", "conv");
         assertThat(address.persistenceKey()).isEqualTo("web:conversation:conv");
     }
