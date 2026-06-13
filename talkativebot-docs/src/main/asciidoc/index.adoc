@@ -294,6 +294,23 @@ New integrations should not use it for workflow lanes or platform thread ids.
 Platform-specific conversation, session, or message ids belong in `IncomingMessage.channel` (`ChannelInfo`), and first-class workflow separation should be handled by a scoped conversation model.
 Provider-specific surfaces such as Facebook Messenger, WhatsApp, or web checkout should also be described in `ChannelInfo` unless the application has registered matching TalkativeBot channels for those values.
 
+=== Conversation scope
+
+`ConversationScope` names the internal workflow lane that should handle a message.
+It is deliberately separate from `ConversationAddress`:
+
+[source]
+----
+ConversationAddress = where/who the message came from
+ConversationScope   = which internal workflow should handle it
+----
+
+`ConversationScope.DEFAULT` is available for simple bots that only run one workflow per address.
+Custom scopes are generic strings such as `checkout`, `payment`, or `order-status`; TalkativeBot core does not prescribe application-specific names.
+
+SRE-81 only introduces the value model.
+Scope-aware pending interaction storage and routing are handled by follow-up work.
+
 === Incoming message envelope
 
 `IncomingMessage` is the inbound event envelope that client integrations pass into `TalkativeBot.handle(...)`.
@@ -721,7 +738,7 @@ atchurey.tools.talkativebot.channels.console-enabled=true
 | `@Topic`
 
 | `core.channel`
-| `InputChannel`, `OutputChannel`, `IncomingMessage`, `OutgoingMessage`, `ConversationAddress`, `ChannelInfo`, `ExternalIdentity`, `ReferralContext`, `PendingInteraction`, `PendingInteractionStore`, `ConversationStartResolver`, registries
+| `InputChannel`, `OutputChannel`, `IncomingMessage`, `OutgoingMessage`, `ConversationAddress`, `ConversationScope`, `ChannelInfo`, `ExternalIdentity`, `ReferralContext`, `PendingInteraction`, `PendingInteractionStore`, `ConversationStartResolver`, registries
 
 | `core.channel.console`
 | `ConsoleInputChannel`, `ConsoleOutputChannel`
