@@ -1,7 +1,9 @@
 package com.atchurey.tools.talkativebot.springbootstarter.store.redis;
 
 import com.atchurey.tools.talkativebot.core.channel.ConversationAddress;
+import com.atchurey.tools.talkativebot.core.channel.ConversationScope;
 import com.atchurey.tools.talkativebot.core.channel.PendingInteraction;
+import com.atchurey.tools.talkativebot.core.channel.PendingInteractionKey;
 import com.atchurey.tools.talkativebot.core.channel.PendingInteractionStore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -30,41 +32,64 @@ public class RedisPendingInteractionStore implements PendingInteractionStore {
 
     @Override
     public void save(PendingInteraction interaction) {
+        save(interaction, ConversationScope.DEFAULT);
+    }
+
+    @Override
+    public void save(
+            PendingInteraction interaction,
+            ConversationScope scope
+    ) {
         Objects.requireNonNull(interaction, "interaction must not be null");
 
-        redisOperations.opsForValue().set(key(interaction.getAddress()), interaction);
+        String key = key(interaction.getAddress(), scope);
+        redisOperations.opsForValue().set(key, interaction);
 
-        logger.debug(
-                "Saved pending interaction {} in Redis for {}",
-                interaction.getId(),
-                interaction.getAddress().persistenceKey()
-        );
+        logger.debug("Saved pending interaction {} in Redis for {}", interaction.getId(), key);
     }
 
     @Override
     public void save(PendingInteraction interaction, Duration ttl) {
+        save(interaction, ConversationScope.DEFAULT, ttl);
+    }
+
+    @Override
+    public void save(
+            PendingInteraction interaction,
+            ConversationScope scope,
+            Duration ttl
+    ) {
         Objects.requireNonNull(interaction, "interaction must not be null");
 
         if (ttl == null || ttl.isZero() || ttl.isNegative()) {
-            save(interaction);
+            save(interaction, scope);
             return;
         }
 
-        redisOperations.opsForValue().set(key(interaction.getAddress()), interaction, ttl);
+        String key = key(interaction.getAddress(), scope);
+        redisOperations.opsForValue().set(key, interaction, ttl);
 
         logger.debug(
                 "Saved pending interaction {} in Redis for {} with ttl {}",
                 interaction.getId(),
-                interaction.getAddress().persistenceKey(),
+                key,
                 ttl
         );
     }
 
     @Override
     public Optional<PendingInteraction> findByAddress(ConversationAddress address) {
+        return findByAddress(address, ConversationScope.DEFAULT);
+    }
+
+    @Override
+    public Optional<PendingInteraction> findByAddress(
+            ConversationAddress address,
+            ConversationScope scope
+    ) {
         Objects.requireNonNull(address, "address must not be null");
 
-        Object value = redisOperations.opsForValue().get(key(address));
+        Object value = redisOperations.opsForValue().get(key(address, scope));
 
         if (value == null) {
             return Optional.empty();
@@ -75,11 +100,20 @@ public class RedisPendingInteractionStore implements PendingInteractionStore {
 
     @Override
     public void deleteByAddress(ConversationAddress address) {
+        deleteByAddress(address, ConversationScope.DEFAULT);
+    }
+
+    @Override
+    public void deleteByAddress(
+            ConversationAddress address,
+            ConversationScope scope
+    ) {
         Objects.requireNonNull(address, "address must not be null");
 
-        redisOperations.delete(key(address));
+        String key = key(address, scope);
+        redisOperations.delete(key);
 
-        logger.debug("Deleted pending interaction from Redis for {}", address.persistenceKey());
+        logger.debug("Deleted pending interaction from Redis for {}", key);
     }
 
     private PendingInteraction toPendingInteraction(Object value, ConversationAddress address) {
@@ -99,7 +133,10 @@ public class RedisPendingInteractionStore implements PendingInteractionStore {
         }
     }
 
-    private String key(ConversationAddress address) {
-        return KEY_PREFIX + address.persistenceKey();
+    private String key(
+            ConversationAddress address,
+            ConversationScope scope
+    ) {
+        return KEY_PREFIX + PendingInteractionKey.from(address, scope);
     }
 }

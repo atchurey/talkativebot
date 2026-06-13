@@ -36,6 +36,9 @@ public class PendingInteractionEntity {
     @Column(name = "address_key", nullable = false, unique = true, length = 512)
     private String addressKey;
 
+    @Column(name = "scope", length = 256)
+    private String scope;
+
     @Column(name = "channel", nullable = false, length = 256)
     private String channel;
 
