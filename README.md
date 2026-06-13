@@ -138,7 +138,7 @@ The generated documentation will be available at:
 <dependency>
     <groupId>com.atchurey.tools</groupId>
     <artifactId>talkativebot-spring-boot-starter</artifactId>
-    <version>0.0.5-SNAPSHOT</version>
+    <version>0.0.7-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -172,8 +172,7 @@ TalkativeBot talkativebot;
 ConversationAddress consoleAddress = new ConversationAddress(
 		"console",
 		"console-user-1",
-		"console-session-1",
-		"conversation-id-1" 
+		"console-session-1"
 );
 talkativebot.play(new SaleConversation(talkativebot, consoleAddress));
 ```

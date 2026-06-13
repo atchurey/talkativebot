@@ -51,7 +51,7 @@ public class TalkativeBotAutoConfiguration {
             channels.setEnabled(springBootTalkativebotProperties.getChannels().isEnabled());
             channels.setConsoleEnabled(springBootTalkativebotProperties.getChannels().isConsoleEnabled());
             ConversationAddress consoleAddress = springBootTalkativebotProperties.getChannels().getConsoleAddress() != null ?
-                    springBootTalkativebotProperties.getChannels().getConsoleAddress() : new ConversationAddress("console", "console-user", "console-session", "console-conversation-1");
+                    springBootTalkativebotProperties.getChannels().getConsoleAddress() : new ConversationAddress("console", "console-user", "console-session");
             channels.setConsoleAddress(consoleAddress);
             talkativebotProperties.setChannels(channels);
 

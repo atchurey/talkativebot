@@ -24,7 +24,7 @@ the conversation manually.
 <dependency>
     <groupId>com.atchurey.tools</groupId>
     <artifactId>talkativebot-spring-boot-starter</artifactId>
-    <version>0.0.3-SNAPSHOT</version>
+    <version>0.0.7-SNAPSHOT</version>
 </dependency>
 ```
 
