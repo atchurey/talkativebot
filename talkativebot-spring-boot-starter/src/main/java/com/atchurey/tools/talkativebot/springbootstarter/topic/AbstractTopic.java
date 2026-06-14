@@ -238,8 +238,11 @@ public abstract class AbstractTopic implements ConversationTopic, ConversationAw
         );
     }
 
-    protected CompletableFuture<String> reply(String text) {
-        return getBot().reply(text);
+    protected CompletableFuture<Void> conclude(String text) {
+        return getBot().conclude(
+                conversation,
+                text
+        );
     }
 
     protected void abandonConversation() {

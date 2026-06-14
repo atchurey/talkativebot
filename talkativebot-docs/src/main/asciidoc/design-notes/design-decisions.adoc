@@ -1,0 +1,46 @@
+= Design Decisions and Trade-offs
+
+xref:../index.adoc[Documentation Home] | xref:index.adoc[Design Notes]
+
+[cols="2,2,2", options="header"]
+|===
+| Decision | Benefit | Trade-off
+
+| Spring-free core
+| Portable, unit-testable without Boot
+| Topic scanning and DI require starter or custom wiring
+
+| Pending interaction per address
+| Simple resume model
+| Cannot stack multiple open questions per address
+
+| Conversation recreation by class name
+| Serializable pending state
+| Ongoing or persisted conversations break if classes are renamed
+
+| Facts-based topic closure
+| Survives pending store round-trips
+| `__talkative.*` keys in fact namespace
+
+| Runtime per conversation type, per JVM
+| Reuse expensive clients; no distributed runtime cache
+| Must not hold per-user durable state — use `Facts` instead
+
+| First matching output channel
+| Simple routing
+| Bean registration order matters
+
+| `AbstractTopic` in starter
+| Rich helpers (`ask`, `fact`, `close`)
+| Topic base class not in core module
+|===
+
+== Known Limitations
+
+* `TopicScanner` has no core implementation — Spring starter or custom scanner required
+* Spring Cloud Stream input bypasses `InputChannelLifecycle`
+* Invalid choice answers throw `IllegalArgumentException` with no structured error channel
+* JPA expired-row cleanup is not scheduled
+* Redis store expects a `RedisOperations<String, Object>` bean
+
+xref:../index.adoc[Documentation Home] | xref:index.adoc[Design Notes]

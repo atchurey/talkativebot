@@ -1,6 +1,7 @@
 package com.atchurey.tools.talkativebot.core.store;
 
 import com.atchurey.tools.talkativebot.core.channel.ConversationAddress;
+import com.atchurey.tools.talkativebot.core.channel.ConversationScope;
 import com.atchurey.tools.talkativebot.core.channel.PendingInteraction;
 import org.junit.jupiter.api.Test;
 
@@ -63,5 +64,60 @@ class InMemoryPendingInteractionStoreTest {
 
         Optional<PendingInteraction> result = store.findByAddress(address);
         assertThat(result).isEmpty();
+    }
+
+    @Test
+    void shouldKeepDefaultScopeCompatibleWithAddressKey() {
+        ConversationAddress address = new ConversationAddress("c", "u", "s", null);
+        PendingInteraction interaction = mock(PendingInteraction.class);
+        when(interaction.getAddress()).thenReturn(address);
+
+        store.save(interaction, ConversationScope.DEFAULT);
+
+        Optional<PendingInteraction> result = store.findByAddress(address);
+        assertThat(result).isPresent().contains(interaction);
+    }
+
+    @Test
+    void shouldStoreMultipleScopesForSameAddress() {
+        ConversationAddress address = new ConversationAddress("c", "u", "s", null);
+        ConversationScope checkoutScope = ConversationScope.of("checkout");
+        ConversationScope statusScope = ConversationScope.of("order-status");
+        PendingInteraction checkoutInteraction = mock(PendingInteraction.class);
+        PendingInteraction statusInteraction = mock(PendingInteraction.class);
+        when(checkoutInteraction.getAddress()).thenReturn(address);
+        when(statusInteraction.getAddress()).thenReturn(address);
+
+        store.save(checkoutInteraction, checkoutScope);
+        store.save(statusInteraction, statusScope);
+
+        Optional<PendingInteraction> checkoutResult = store.findByAddress(address, checkoutScope);
+        Optional<PendingInteraction> statusResult = store.findByAddress(address, statusScope);
+        Optional<PendingInteraction> defaultResult = store.findByAddress(address);
+
+        assertThat(checkoutResult).isPresent().contains(checkoutInteraction);
+        assertThat(statusResult).isPresent().contains(statusInteraction);
+        assertThat(defaultResult).isEmpty();
+    }
+
+    @Test
+    void shouldDeleteOnlyRequestedScope() {
+        ConversationAddress address = new ConversationAddress("c", "u", "s", null);
+        ConversationScope checkoutScope = ConversationScope.of("checkout");
+        ConversationScope statusScope = ConversationScope.of("order-status");
+        PendingInteraction checkoutInteraction = mock(PendingInteraction.class);
+        PendingInteraction statusInteraction = mock(PendingInteraction.class);
+        when(checkoutInteraction.getAddress()).thenReturn(address);
+        when(statusInteraction.getAddress()).thenReturn(address);
+
+        store.save(checkoutInteraction, checkoutScope);
+        store.save(statusInteraction, statusScope);
+        store.deleteByAddress(address, checkoutScope);
+
+        Optional<PendingInteraction> checkoutResult = store.findByAddress(address, checkoutScope);
+        Optional<PendingInteraction> statusResult = store.findByAddress(address, statusScope);
+
+        assertThat(checkoutResult).isEmpty();
+        assertThat(statusResult).isPresent().contains(statusInteraction);
     }
 }

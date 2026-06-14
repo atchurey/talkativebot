@@ -1,7 +1,9 @@
 package com.atchurey.tools.talkativebot.core.store;
 
 import com.atchurey.tools.talkativebot.core.channel.ConversationAddress;
+import com.atchurey.tools.talkativebot.core.channel.ConversationScope;
 import com.atchurey.tools.talkativebot.core.channel.PendingInteraction;
+import com.atchurey.tools.talkativebot.core.channel.PendingInteractionKey;
 import com.atchurey.tools.talkativebot.core.channel.PendingInteractionStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,46 +23,52 @@ public class InMemoryPendingInteractionStore implements PendingInteractionStore 
 
     @Override
     public void save(PendingInteraction interaction) {
-        Objects.requireNonNull(interaction, "interaction must not be null");
+        save(interaction, ConversationScope.DEFAULT);
+    }
 
-        interactions.put(
-                interaction.getAddress().persistenceKey(),
-                new StoredPendingInteraction(interaction, null)
-        );
-
-        logger.debug(
-                "Saved pending interaction {} in memory for {}",
-                interaction.getId(),
-                interaction.getAddress().persistenceKey()
-        );
+    @Override
+    public void save(
+            PendingInteraction interaction,
+            ConversationScope scope
+    ) {
+        saveInternal(interaction, scope, null);
     }
 
     @Override
     public void save(PendingInteraction interaction, Duration ttl) {
-        Objects.requireNonNull(interaction, "interaction must not be null");
-
         Instant expiresAt = ttl == null || ttl.isZero() || ttl.isNegative()
                 ? null
                 : Instant.now().plus(ttl);
 
-        interactions.put(
-                interaction.getAddress().persistenceKey(),
-                new StoredPendingInteraction(interaction, expiresAt)
-        );
+        saveInternal(interaction, ConversationScope.DEFAULT, expiresAt);
+    }
 
-        logger.debug(
-                "Saved pending interaction {} in memory for {} with ttl {}",
-                interaction.getId(),
-                interaction.getAddress().persistenceKey(),
-                ttl
-        );
+    @Override
+    public void save(
+            PendingInteraction interaction,
+            ConversationScope scope,
+            Duration ttl
+    ) {
+        Instant expiresAt = ttl == null || ttl.isZero() || ttl.isNegative()
+                ? null
+                : Instant.now().plus(ttl);
+
+        saveInternal(interaction, scope, expiresAt);
     }
 
     @Override
     public Optional<PendingInteraction> findByAddress(ConversationAddress address) {
+        return findByAddress(address, ConversationScope.DEFAULT);
+    }
+
+    @Override
+    public Optional<PendingInteraction> findByAddress(
+            ConversationAddress address,
+            ConversationScope scope
+    ) {
         Objects.requireNonNull(address, "address must not be null");
 
-        String key = address.persistenceKey();
+        String key = PendingInteractionKey.from(address, scope);
         StoredPendingInteraction storedInteraction = interactions.get(key);
 
         if (storedInteraction == null) {
@@ -78,12 +86,37 @@ public class InMemoryPendingInteractionStore implements PendingInteractionStore 
 
     @Override
     public void deleteByAddress(ConversationAddress address) {
+        deleteByAddress(address, ConversationScope.DEFAULT);
+    }
+
+    @Override
+    public void deleteByAddress(
+            ConversationAddress address,
+            ConversationScope scope
+    ) {
         Objects.requireNonNull(address, "address must not be null");
 
-        String key = address.persistenceKey();
+        String key = PendingInteractionKey.from(address, scope);
         interactions.remove(key);
 
         logger.debug("Deleted pending interaction from memory for {}", key);
+    }
+
+    private void saveInternal(
+            PendingInteraction interaction,
+            ConversationScope scope,
+            Instant expiresAt
+    ) {
+        Objects.requireNonNull(interaction, "interaction must not be null");
+
+        String key = PendingInteractionKey.from(interaction.getAddress(), scope);
+        interactions.put(key, new StoredPendingInteraction(interaction, expiresAt));
+
+        logger.debug(
+                "Saved pending interaction {} in memory for {}",
+                interaction.getId(),
+                key
+        );
     }
 
     private record StoredPendingInteraction(

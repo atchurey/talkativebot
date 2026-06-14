@@ -2,8 +2,10 @@ package com.atchurey.tools.talkativebot.springbootstarter.configs;
 
 import com.atchurey.tools.talkativebot.core.bot.TalkativeBot;
 import com.atchurey.tools.talkativebot.core.channel.ConversationAddress;
+import com.atchurey.tools.talkativebot.core.channel.ConversationMessageRouter;
 import com.atchurey.tools.talkativebot.core.channel.ConversationStartRegistry;
 import com.atchurey.tools.talkativebot.core.channel.ConversationStartResolver;
+import com.atchurey.tools.talkativebot.core.channel.DefaultConversationMessageRouter;
 import com.atchurey.tools.talkativebot.core.channel.DefaultOptionSelector;
 import com.atchurey.tools.talkativebot.core.channel.InputChannel;
 import com.atchurey.tools.talkativebot.core.channel.OptionSelector;
@@ -51,7 +53,7 @@ public class TalkativeBotAutoConfiguration {
             channels.setEnabled(springBootTalkativebotProperties.getChannels().isEnabled());
             channels.setConsoleEnabled(springBootTalkativebotProperties.getChannels().isConsoleEnabled());
             ConversationAddress consoleAddress = springBootTalkativebotProperties.getChannels().getConsoleAddress() != null ?
-                    springBootTalkativebotProperties.getChannels().getConsoleAddress() : new ConversationAddress("console", "console-user", "console-session", "console-conversation-1");
+                    springBootTalkativebotProperties.getChannels().getConsoleAddress() : new ConversationAddress("console", "console-user", "console-session");
             channels.setConsoleAddress(consoleAddress);
             talkativebotProperties.setChannels(channels);
 
@@ -84,6 +86,12 @@ public class TalkativeBotAutoConfiguration {
     @ConditionalOnMissingBean
     public OutputChannelRegistry outputChannelRegistry(List<OutputChannel> outputChannels) {
         return new OutputChannelRegistry(outputChannels);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ConversationMessageRouter conversationMessageRouter() {
+        return new DefaultConversationMessageRouter();
     }
 
     @Bean
@@ -173,7 +181,8 @@ public class TalkativeBotAutoConfiguration {
                                      ConversationFactory conversationFactory,
                                      ConversationStartRegistry conversationStartRegistry,
                                      ConversationRuntimeRegistry conversationRuntimeRegistry,
-                                     ConversationRuntimeInitializerResolver conversationRuntimeInitializerResolver) {
+                                     ConversationRuntimeInitializerResolver conversationRuntimeInitializerResolver,
+                                     ConversationMessageRouter conversationMessageRouter) {
         return new TalkativeBot(
                 properties,
                 pendingInteractionStore,
@@ -184,7 +193,8 @@ public class TalkativeBotAutoConfiguration {
                 conversationFactory,
                 conversationStartRegistry,
                 conversationRuntimeRegistry,
-                conversationRuntimeInitializerResolver);
+                conversationRuntimeInitializerResolver,
+                conversationMessageRouter);
     }
 
 }

@@ -60,8 +60,7 @@ public class MessagingStream {
 			ConversationAddress channelAddress = new ConversationAddress(
 					"stream", // The channel type. To use the Sprinng Cloud Stream input/output channel provided by TalkativeBot, set this to "spring-cloud-stream" or "stream".
 					"some-user-id", // Your user identifier
-					"some-session-id", // The user's session identifier'
-					"some-conversation-id" // A unique conversation identifier
+					"some-session-id" // The user's session identifier
 			);
 
 			// Message is sent to the input channel of TalkativeBot

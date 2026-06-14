@@ -1,0 +1,144 @@
+= Architecture
+
+xref:index.adoc[Documentation Home]
+
+== Central orchestrator
+
+`com.atchurey.tools.talkativebot.core.bot.TalkativeBot` is the single entry point for message handling and conversation execution. It implements `InputMessageHandler` and coordinates:
+
+[cols="2,4", options="header"]
+|===
+| Collaborator | Responsibility
+
+| `TopicScanner` / `TopicFactory`
+| Discover `@Topic` classes and instantiate them for a conversation
+
+| `ConversationFactory`
+| Recreate conversation instances by fully qualified class name + `ConversationAddress`
+
+| `PendingInteractionStore`
+| Persist in-flight question/answer state with TTL
+
+| `OutputChannelRegistry`
+| Route outbound messages to the first matching `OutputChannel`
+
+| `OptionSelector`
+| Map inbound text to `Option` for choice questions
+
+| `ConversationStartRegistry`
+| Resolve new conversations when no pending interaction exists
+
+| `ConversationMessageRouter`
+| Choose address, scope, and resume/start mode before pending interaction lookup
+
+| `ConversationRuntimeRegistry`
+| Per-conversation-type shared resources (HTTP clients, repositories)
+|===
+
+Key public operations:
+
+* `play(Conversation)` — hydrate runtime, invoke `conversation.play()`
+* `ask(conversation, topic, question)` — save `PendingInteraction`, send `OutgoingMessage.question(...)`
+* `conclude(conversation, text)` — send terminal output without saving a `PendingInteraction`, then close the conversation
+* `handle(IncomingMessage)` — route inbound message, resume pending interaction, or start via `ConversationStartResolver`
+
+== Conversation engine
+
+`AbstractConversation<T>` discovers topics at construction time, sorts them by `order` then `key`, and drives the flow through `play()`:
+
+. Select the next playable topic (`nextTopic()`)
+. Invoke `topic.play()` → typically `doPlay()` → `TalkativeBot.ask()` for prompts or `TalkativeBot.conclude()` for terminal output
+. On user input, `topic.onInput(SelectedAnswer)` runs, pending state is deleted, then `play()` continues
+. Close when no topics remain playable
+
+`Facts` (`LinkedHashMap<String, Object>`, Jackson-serializable) carry business state and framework markers (`__talkative.topic.<key>.closed`, `__talkative.start.*`).
+
+== Conversation runtime
+
+`ConversationRuntime` is an in-memory, keyed resource bag for *infrastructure* a conversation type needs while it runs — HTTP clients, repositories, API facades, and similar beans. It is **not** where durable conversation state lives.
+
+=== How it is created and attached
+
+. Register a `ConversationRuntimeInitializer` (Spring bean or manual wiring) that `supports` your conversation class and builds a `ConversationRuntime` (typically via `DefaultConversationRuntime.builder()`).
+. On every `play()` and every inbound `handle()` resume, `TalkativeBot` calls `hydrateConversationRuntime()`:
+.. `ConversationRuntimeRegistry.getOrInitialize(conversationType, initializer)` returns a runtime for that conversation type (creating it once per type on first use).
+.. The runtime is injected into the conversation via `RuntimeAwareConversation.setRuntime()`.
+
+Conversation objects themselves are often short-lived: they are created by `ConversationFactory`, run a step, and may be discarded until the next message. The runtime outlives any single conversation instance on that JVM.
+
+=== Per application instance, not distributed
+
+`ConversationRuntimeRegistry` is a local `ConcurrentHashMap` inside the running process. Each application instance (JVM, pod, or node) maintains its own registry.
+
+* No cluster-wide runtime cache or replication is required.
+* No coordination protocol is needed to share runtime objects across nodes.
+* After a service restart, runtimes are lazily re-created on the next `getOrInitialize` for that conversation type.
+
+This model fits deployments where *durable* progress is carried by `PendingInteractionStore` and `Facts`, while *ephemeral* infrastructure is rebuilt cheaply on each instance.
+
+=== Safe across async hops, scaling, and restarts
+
+Human-in-the-loop flows are inherently asynchronous: ask on one request, resume minutes later on another thread, another pod, or after a redeploy.
+
+| Scenario | Runtime behavior | Where durable state must live |
+|==========|==================|===============================|
+| User answers after a delay (same JVM) | Conversation recreated; same local runtime reused for that conversation type | `Facts` restored from `PendingInteraction` |
+| Load-balanced cluster (Redis/JPA store) | Any node can resume; that node hydrates *its own* local runtime for the conversation type | `Facts` in the pending interaction record |
+| Horizontal scale-out | New pods initialize runtimes on demand; no shared runtime service | `Facts` + store TTL |
+| Service restart | In-memory runtimes are empty until first use; conversations resume from the store | `Facts` + store TTL |
+
+The runtime is safe for these hops because it holds only *replaceable infrastructure*, not conversation-specific business outcomes. If a `WebClient` or repository is recreated after restart, the flow still continues as long as `Facts` (and the pending interaction snapshot) describe what step the user is on.
+
+=== One runtime per conversation type, per JVM
+
+Within a single application instance, all active conversations of the same type (e.g. every `CheckoutConversation` on that node) share one `ConversationRuntime` for that type. That is intentional: it avoids opening a new connection pool or client per user session.
+
+Do **not** store per-user or per-session durable data in the runtime — use `Facts` instead, so state survives:
+
+* async gaps between question and answer;
+* resumption on a different node (with a shared pending store);
+* class recreation after rename/deploy (for in-flight interactions, subject to conversation class name stability).
+
+=== Facts vs runtime — what goes where
+
+[cols="2,3", options="header"]
+|===
+| Store in `Facts` | Store in `ConversationRuntime`
+
+| User choices, workflow step, business identifiers
+| `WebClient`, JDBC templates, gRPC stubs, service clients
+
+| Anything serialized into `PendingInteraction`
+| Anything expensive to construct but safe to share per conversation type
+
+| State that must survive TTL-bound pending storage
+| Stateless or idempotent infrastructure helpers
+|===
+
+`Facts` are Jackson-serializable and copied into `PendingInteraction` when `TalkativeBot.ask()` runs. Treat them as the source of truth for *what* the conversation knows. Treat the runtime as *how* the conversation talks to the outside world on this JVM.
+
+=== Example
+
+The joke factory demo (`JokeFactoryConversationRuntimeInitializer`) registers a `WebClient` and joke API helper in the runtime. Topic code reads it via `getRuntime().get(key, JokeFactoryRuntime.class)`. Joke type, action, and joke id live in `Facts` so the punchline step can resume correctly after the user replies.
+
+== Layered view
+
+[source]
+----
+┌─────────────────────────────────────────────────────────────┐
+│  Application layer                                          │
+│  AbstractConversation, @Topic classes, StartResolvers       │
+├─────────────────────────────────────────────────────────────┤
+│  Orchestration (talkativebot-core)                          │
+│  TalkativeBot, Facts, PendingInteraction, registries        │
+├─────────────────────────────────────────────────────────────┤
+│  Integration (talkativebot-spring-boot-starter)             │
+│  Auto-config, SpringTopicScanner, Redis/JPA stores,         │
+│  Console channels, Spring Cloud Stream adapters             │
+├─────────────────────────────────────────────────────────────┤
+│  Transport (your channels)                                  │
+│  Console, RabbitMQ stream bindings, custom OutputChannels   │
+└─────────────────────────────────────────────────────────────┘
+----
+
+xref:index.adoc[Documentation Home]

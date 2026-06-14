@@ -1,0 +1,17 @@
+= Building This Documentation
+
+xref:index.adoc[Documentation Home]
+
+Generate the HTML reference guide and aggregate Javadocs from the repository root:
+
+[source,bash]
+----
+./mvnw clean prepare-package javadoc:aggregate -DskipTests
+----
+
+Output locations:
+
+* Reference guide: `talkativebot-docs/target/generated-docs/index.html`
+* Javadocs: `target/site/apidocs/index.html`
+
+xref:index.adoc[Documentation Home]

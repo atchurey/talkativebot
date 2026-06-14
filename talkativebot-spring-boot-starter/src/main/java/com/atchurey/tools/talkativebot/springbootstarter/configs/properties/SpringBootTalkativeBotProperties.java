@@ -21,8 +21,7 @@ public class SpringBootTalkativeBotProperties {
     public static class Channels {
         private boolean enabled = true;
         private boolean consoleEnabled = false;
-        private ConversationAddress consoleAddress = new ConversationAddress("console", "console-user", "console-session", "console-conversation-1"
-        );;
+        private ConversationAddress consoleAddress = new ConversationAddress("console", "console-user", "console-session");
     }
 
     @Setter

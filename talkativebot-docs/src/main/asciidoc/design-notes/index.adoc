@@ -1,0 +1,19 @@
+= Design Notes
+Albert Atchurey
+:revnumber: {project-version}
+:toc: left
+:toclevels: 2
+:sectnums:
+:sectanchors:
+:icons: font
+:source-highlighter: coderay
+:description: Design notes for TalkativeBot
+
+xref:../index.adoc[Documentation Home]
+
+These pages capture design trade-offs, known limitations, and roadmap notes that are useful to maintainers.
+
+* xref:design-decisions.adoc[Design Decisions and Trade-offs]
+* xref:roadmap-notes.adoc[Roadmap Notes]
+
+xref:../index.adoc[Documentation Home]
