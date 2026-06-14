@@ -1,0 +1,87 @@
+= Overview
+
+xref:index.adoc[Documentation Home]
+
+== Summary
+
+TalkativeBot is a Java 17 / Spring Boot 3 multi-module library for building *stateful, channel-agnostic conversation flows*.
+It sits between your business application and messaging or AI transports: you model human-in-the-loop interactions as conversations and topics, the framework asks questions, persists pending state, and resumes when answers arrive.
+
+The design deliberately separates orchestration from transport. The `talkativebot-core` module is Spring-free (enforced by Maven Enforcer) and owns the conversation engine; `talkativebot-spring-boot-starter` adds classpath topic scanning, auto-configuration, and optional Redis, JPA, console, and Spring Cloud Stream integrations.
+Example modules demonstrate a local checkout flow (`example-console`) and a distributed joke-bot over RabbitMQ and Redis (`example-stream-redis`).
+
+*Current version:* `{project-version}` (parent POM `talkativebot-parent`).
+
+== What TalkativeBot Is — and Is Not
+
+=== What it is
+
+* A lightweight conversation *state manager* for structured human interaction
+* A way to decouple business dialogue logic from chat platforms, REST controllers, and message consumers
+* A multi-channel orchestration layer with pluggable input/output adapters and pending-interaction persistence
+
+=== What it is not
+
+* A workflow engine (no BPMN, no long-running saga orchestration beyond conversation scope)
+* A chatbot platform or AI framework (no LLM integration, no NLU)
+* A replacement for messaging infrastructure — it consumes and produces messages through your channels
+
+The intended use case is applications that already have complex business logic and need a predictable layer for *ask → wait → resume* interactions without embedding that logic in channel-specific code.
+
+== Project Structure
+
+=== Maven modules
+
+[cols="2,3,2", options="header"]
+|===
+| Module | Purpose | Packaging
+
+| `talkativebot-parent`
+| BOM, shared plugins, dependency management (Spring Boot `3.4.0`, Spring Cloud `2024.0.0`)
+| `pom`
+
+| `talkativebot-core`
+| Framework-independent conversation engine; bans all Spring artifacts
+| `jar`
+
+| `talkativebot-spring-boot-starter`
+| Auto-configuration, topic scanning, Redis/JPA/console/stream adapters
+| `jar`
+
+| `talkativebot-docs`
+| This reference guide (Asciidoctor HTML)
+| `jar` (not deployed)
+
+| `example-console`
+| Checkout conversation demo with in-memory store and console I/O
+| `jar`
+
+| `example-stream-redis`
+| Distributed demo aggregator (`agent-one`, `agent-two`)
+| `pom`
+|===
+
+=== Dependency graph
+
+[source]
+----
+talkativebot-parent
+├── talkativebot-core
+├── talkativebot-spring-boot-starter → talkativebot-core
+├── talkativebot-docs
+├── example-console → talkativebot-spring-boot-starter
+└── example-stream-redis
+    ├── agent-one → talkativebot-spring-boot-starter + spring-boot-starter-data-redis
+    └── agent-two → talkativebot-core (+ spring-cloud-stream-rabbit)
+----
+
+=== Technology stack
+
+* Java 17 (`maven.compiler.release`)
+* Spring Boot 3.4.0 (starter and examples only)
+* Jackson (core serialization for facts and pending interactions)
+* SLF4J (logging)
+* Lombok and Apache Commons Lang3 (parent-managed)
+* License: Apache 2.0
+
+xref:index.adoc[Documentation Home]

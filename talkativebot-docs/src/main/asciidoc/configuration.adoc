@@ -1,0 +1,68 @@
+= Configuration Reference
+
+xref:index.adoc[Documentation Home]
+
+All properties use the prefix `atchurey.tools.talkativebot`.
+
+[cols="3,1,2,3", options="header"]
+|===
+| Property | Type | Default | Description
+
+| `topic-base-package`
+| String
+| `null` (scanner falls back to `com.atchurey.tools.talkative`)
+| Classpath package root for `@Topic` scanning
+
+| `channels.enabled`
+| boolean
+| `true`
+| Enables `InputChannelLifecycle` for `InputChannel` beans
+
+| `channels.console-enabled`
+| boolean
+| `false`
+| Registers `ConsoleInputChannel` and `ConsoleOutputChannel`
+
+| `channels.console-address.channel`
+| String
+| `"console"`
+| Console channel identifier
+
+| `channels.console-address.user-id`
+| String
+| `"console-user"`
+| Default console user id
+
+| `channels.console-address.session-id`
+| String
+| `"console-session"`
+| Default console session id
+
+| `channels.console-address.conversation-id`
+| String
+| `null`
+| Legacy optional field; prefer `session-id` for new integrations
+
+| `pending-interaction.store`
+| enum
+| `memory`
+| `memory`, `redis`, or `database`
+
+| `pending-interaction.ttl`
+| Duration
+| `30m`
+| TTL for pending interactions (all store types)
+|===
+
+== Example configuration
+
+[source,properties]
+----
+atchurey.tools.talkativebot.pending-interaction.store=memory
+atchurey.tools.talkativebot.pending-interaction.ttl=30m
+atchurey.tools.talkativebot.topic-base-package=com.example.myapp.topics
+atchurey.tools.talkativebot.channels.enabled=true
+atchurey.tools.talkativebot.channels.console-enabled=true
+----
+
+xref:index.adoc[Documentation Home]

@@ -1,0 +1,72 @@
+= Message Flow
+
+xref:index.adoc[Documentation Home]
+
+== Inbound path
+
+[source]
+----
+[User / External system]
+        │
+        ▼
+┌───────────────────┐     ┌──────────────────────────────┐
+│ InputChannel      │     │ SpringCloudStreamInputConsumer│
+│ (e.g. Console)    │     │ Consumer<IncomingMessage>     │
+└─────────┬─────────┘     └──────────────┬───────────────┘
+          │                                │
+          └──────────────┬─────────────────┘
+	                         ▼
+	              TalkativeBot.handle(IncomingMessage)
+	                         │
+	                 ConversationMessageRouter
+	                 selects address + scope + mode
+	                         │
+	         ┌───────────────┴────────────────┐
+	         │                                │
+	    scoped pending found?            no scoped pending
+         │                                │
+         ▼                                ▼
+  resumeConversation()      ConversationStartRegistry.resolve()
+         │                                │
+         │                         startConversation()
+         └───────────────┬────────────────┘
+                         ▼
+         ConversationFactory.create(FQCN, address)
+         restore Facts, hydrate ConversationRuntime
+                         ▼
+              topic.onInput() then conversation.play()
+              — or — conversation.play() on fresh start
+----
+
+== Resume sequence
+
+When a `PendingInteraction` exists for the routed `ConversationAddress` and `ConversationScope`:
+
+. Load interaction from store (memory, Redis, or database)
+. Recreate conversation via `ConversationFactory`
+. Clear facts and replay snapshot from pending interaction
+. Resolve topic by `currentTopicKey`; call `onInput(SelectedAnswer)`
+. Delete pending interaction
+. Call `conversation.play()` to advance the flow
+
+For choice questions, `DefaultOptionSelector` matches option *value* (integer parse) or *text* (case-insensitive). Invalid choices throw `IllegalArgumentException`.
+
+== Outbound path
+
+`TalkativeBot.ask()` builds a `PendingInteraction` (address, conversation FQCN, topic key, question, facts snapshot), saves it with configured TTL, then sends `OutgoingMessage.question(...)` through `OutputChannelRegistry`.
+The first `OutputChannel` where `supports(address)` returns true handles delivery.
+
+== Address and persistence key
+
+`ConversationAddress` carries `channel`, `userId`, and optional `sessionId`.
+For non-legacy addresses, `persistenceKey()` prefers `sessionId` → `userId`, so one pending interaction exists per user/session address.
+`channel` is not arbitrary provider metadata.
+It must map to a supported TalkativeBot input/output channel for the application, because outbound delivery uses `OutputChannel.supports(address)` to select the transport.
+For example, built-in output channels support values such as `console`, `spring-cloud-stream`, or `stream`.
+
+`conversationId` is still accepted as a legacy constructor/JSON field for backward compatibility with existing integrations and persisted pending interactions.
+New integrations should not use it for workflow lanes or platform thread ids.
+Platform-specific conversation, session, or message ids belong in `IncomingMessage.channel` (`ChannelInfo`), and first-class workflow separation should be handled by a scoped conversation model.
+Provider-specific surfaces such as Facebook Messenger, WhatsApp, or web checkout should also be described in `ChannelInfo` unless the application has registered matching TalkativeBot channels for those values.
+
+xref:index.adoc[Documentation Home]

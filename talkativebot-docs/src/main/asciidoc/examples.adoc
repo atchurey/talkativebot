@@ -1,0 +1,65 @@
+= Examples and Testing
+
+xref:index.adoc[Documentation Home]
+
+== Examples
+
+=== example-console (checkout flow)
+
+Demonstrates:
+
+* Manual `TalkativeBot.play()` via `SaleConversationRunner`
+* In-memory pending store
+* Console I/O with configured `console-address`
+* Topic chain: `greetings` → `cart_review` → `delivery_method` → `shipping_address` → `payment_method`
+
+Patterns shown: `canPlayWithFacts` gating, fact accumulation across topics, `onConversationClosed` logging, abandon vs close in `onInput`.
+
+*Known gap:* `PaymentMethodTopic` declares `next = "complete_sale"`, but no `CompleteSaleTopic` class exists in the module — the flow logs a warning and falls back to order-based selection.
+
+=== example-stream-redis (joke factory)
+
+A two-process distributed demo:
+
+**agent-one** — full TalkativeBot + Redis + RabbitMQ:
+
+* `JokeFactoryConversation`, `JokeFactoryTopic`, `JokeFactoryConversationStartResolver` (`/start`)
+* `JokeFactoryConversationRuntimeInitializer` — `WebClient` to the Official Joke API
+* Stream bindings: questions to `agent-two-input`, answers from `agent-one-input`
+* Redis pending store (`ttl=20m`)
+
+**agent-two** — core types only, simulates an external chat UI:
+
+* Consumes `OutgoingMessage`, logs setup/punchline, auto-replies with first option value
+* Sends `IncomingMessage` back via `StreamBridge`
+
+*Walkthrough:*
+
+. User sends `/start` → resolver starts `JokeFactoryConversation`
+. `JokeFactoryTopic.doPlay` calls joke API, asks choice question (setup + "What?" option)
+. Pending interaction saved in Redis; message sent to agent-two
+. Agent-two replies with joke id → `onInput` sets `action=deliver_punchline`
+. Topic replays, fetches punchline, asks text question
+. `@Topic(canReplay=true)` allows another joke cycle
+
+Requires RabbitMQ and Redis (see `application.yml` in each agent).
+
+== Testing
+
+=== talkativebot-core
+
+~18 test classes using JUnit 5, AssertJ, and Mockito.
+
+Coverage includes: `TalkativeBot` start/ask/resume flow, `AbstractConversation` topic ordering and `next` links, channel registries, `Facts`, runtime registry, console channel behavior.
+
+*Gaps:* No integration tests for Redis, JPA, or Spring Cloud Stream.
+
+=== talkativebot-spring-boot-starter
+
+Slice tests with `ApplicationContextRunner` verify default beans, property mapping, memory default, fail-fast for misconfigured `redis`/`database` stores, and console conditional registration.
+
+=== Examples
+
+`@SpringBootTest` context-load tests only — no end-to-end conversation assertions.
+
+xref:index.adoc[Documentation Home]

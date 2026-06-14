@@ -22,6 +22,7 @@
                 <groupId>org.asciidoctor</groupId>
                 <artifactId>asciidoctor-maven-plugin</artifactId>
                 <configuration>
+                    <preserveDirectories>true</preserveDirectories>
                     <attributes>
                         <project-version>${project.version}</project-version>
                     </attributes>

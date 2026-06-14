@@ -1,0 +1,105 @@
+= Extension Points and Package Inventory
+
+xref:index.adoc[Documentation Home]
+
+== Package Inventory
+
+=== talkativebot-core (main packages)
+
+[cols="2,4", options="header"]
+|===
+| Package | Key types
+
+| `core.bot`
+| `TalkativeBot`
+
+| `core.configs`
+| `TalkativeBotProperties`
+
+| `core.conversation`
+| `Conversation`, `AbstractConversation`, `ConversationFactory`, `ReflectionConversationFactory`, `Facts`, `ConversationRuntime`, `ConversationRuntimeRegistry`, `RuntimeAwareConversation`
+
+| `core.topic`
+| `ConversationTopic`, `TopicScanner`, `TopicFactory`, `ReflectionTopicFactory`, `TopicDescriptor`
+
+| `core.topic.interfaces`
+| `@Topic`
+
+| `core.channel`
+| `InputChannel`, `OutputChannel`, `IncomingMessage`, `OutgoingMessage`, `ConversationAddress`, `ConversationScope`, `ChannelInfo`, `ExternalIdentity`, `ReferralContext`, `PendingInteraction`, `PendingInteractionStore`, `ConversationStartResolver`, `ScopedConversationStartResolver`, registries
+
+| `core.channel.console`
+| `ConsoleInputChannel`, `ConsoleOutputChannel`
+
+| `core.questions`
+| `Question`, `Option`, `QuestionType`
+
+| `core.store`
+| `InMemoryPendingInteractionStore`
+|===
+
+=== talkativebot-spring-boot-starter (main packages)
+
+[cols="2,4", options="header"]
+|===
+| Package | Key types
+
+| `springbootstarter.configs`
+| `TalkativeBotAutoConfiguration`, `TalkativeBotConsoleAutoConfiguration`, `TalkativeBotRedisAutoConfiguration`, `TalkativeBotJpaAutoConfiguration`, `TalkativeBotConversationRuntimeAutoConfiguration`
+
+| `springbootstarter.configs.properties`
+| `SpringBootTalkativeBotProperties`
+
+| `springbootstarter.topic`
+| `AbstractTopic`, `SpringTopicScanner`, `SpringTopicFactory`
+
+| `springbootstarter.channels`
+| `InputChannelLifecycle`
+
+| `springbootstarter.channels.stream`
+| `SpringCloudStreamInputConsumer`, `SpringCloudStreamOutputChannel`
+
+| `springbootstarter.store.redis`
+| `RedisPendingInteractionStore`
+
+| `springbootstarter.store.jpa`
+| `JpaPendingInteractionStore`, `PendingInteractionEntity`
+|===
+
+== Extension Points
+
+Developers customize TalkativeBot by implementing:
+
+[cols="2,3", options="header"]
+|===
+| Extension | Use case
+
+| `AbstractConversation`
+| Orchestration callbacks, conversation-level flow
+
+| `AbstractTopic` + `@Topic`
+| Questions, facts, branching, replay
+
+| `ConversationStartResolver`
+| Map inbound text/commands to `ConversationStartRequest`
+
+| `ScopedConversationStartResolver`
+| Limit a start resolver to selected conversation scopes
+
+| `ConversationRuntimeInitializer`
+| Shared WebClients, repositories per conversation type
+
+| `InputChannel` / `OutputChannel`
+| WhatsApp, Slack, REST webhooks, custom transports
+
+| `PendingInteractionStore`
+| Custom persistence backends
+
+| `OptionSelector`
+| Non-standard option matching (NLP, fuzzy match)
+
+| `TopicScanner` / `TopicFactory`
+| Non-Spring topic discovery
+|===
+
+xref:index.adoc[Documentation Home]
