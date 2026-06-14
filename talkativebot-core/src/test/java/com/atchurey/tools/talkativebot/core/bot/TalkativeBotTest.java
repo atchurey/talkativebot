@@ -89,13 +89,27 @@ class TalkativeBotTest {
         List<OutgoingMessage> sentMessages = messageCaptor.getAllValues();
         
         assertThat(sentMessages.get(0).getQuestion().getText()).isEqualTo("What is your name?");
-        assertThat(sentMessages.get(1).getQuestion().getText()).isEqualTo("Hello Alice");
+        assertThat(sentMessages.get(1).getText()).isEqualTo("Hello Alice");
 
-        // Verify interaction saved for the last question (since we used bot.ask)
-        assertThat(store.findByAddress(address)).isPresent();
-        assertThat(store.findByAddress(address).get().getCurrentTopicKey()).isEqualTo("end");
+        // Verify terminal output did not leave a pending interaction.
+        assertThat(store.findByAddress(address)).isEmpty();
 
         assertThat(lastConversation.isClosed()).isTrue();
+    }
+
+    @Test
+    void shouldConcludeWithoutSavingPendingInteraction() {
+        ConversationAddress address = new ConversationAddress("test", "user123", null, null);
+        TestConversation conversation = new TestConversation(bot, address);
+
+        bot.conclude(conversation, "Command completed.").join();
+
+        ArgumentCaptor<OutgoingMessage> messageCaptor = ArgumentCaptor.forClass(OutgoingMessage.class);
+        verify(outputChannelRegistry).send(messageCaptor.capture());
+        assertThat(messageCaptor.getValue().getAddress()).isEqualTo(address);
+        assertThat(messageCaptor.getValue().getText()).isEqualTo("Command completed.");
+        assertThat(store.findByAddress(address)).isEmpty();
+        assertThat(conversation.isClosed()).isTrue();
     }
 
     @Test
@@ -272,8 +286,7 @@ class TalkativeBotTest {
         bot.handle(secondMessage).join();
 
         assertThat(store.findByAddress(address)).isEmpty();
-        assertThat(store.findByAddress(address, checkoutScope)).isPresent();
-        assertThat(store.findByAddress(address, checkoutScope).get().getCurrentTopicKey()).isEqualTo("end");
+        assertThat(store.findByAddress(address, checkoutScope)).isEmpty();
     }
 
     @Test
@@ -465,8 +478,7 @@ class TalkativeBotTest {
         }
         @Override
         public void play() {
-            ((AbstractConversation<?>) conversation).getBot().ask(conversation, this, Question.text("Hello " + conversation.getFacts().get("name")));
-            close();
+            ((AbstractConversation<?>) conversation).getBot().conclude(conversation, "Hello " + conversation.getFacts().get("name"));
         }
         @Override
         public int getOrder() {

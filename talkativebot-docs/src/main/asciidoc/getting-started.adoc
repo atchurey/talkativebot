@@ -80,7 +80,7 @@ public class SaleConversation extends AbstractConversation<String> {
 
     @Override
     protected CompletableFuture<String> onConversationClosed() {
-        return bot.reply("Sale conversation completed.");
+        return CompletableFuture.completedFuture("Sale conversation completed.");
     }
 }
 ----

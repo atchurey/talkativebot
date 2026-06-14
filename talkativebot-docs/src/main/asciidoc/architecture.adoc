@@ -39,6 +39,7 @@ Key public operations:
 
 * `play(Conversation)` — hydrate runtime, invoke `conversation.play()`
 * `ask(conversation, topic, question)` — save `PendingInteraction`, send `OutgoingMessage.question(...)`
+* `conclude(conversation, text)` — send terminal output without saving a `PendingInteraction`, then close the conversation
 * `handle(IncomingMessage)` — route inbound message, resume pending interaction, or start via `ConversationStartResolver`
 
 == Conversation engine
@@ -46,7 +47,7 @@ Key public operations:
 `AbstractConversation<T>` discovers topics at construction time, sorts them by `order` then `key`, and drives the flow through `play()`:
 
 . Select the next playable topic (`nextTopic()`)
-. Invoke `topic.play()` → typically `doPlay()` → `TalkativeBot.ask()`
+. Invoke `topic.play()` → typically `doPlay()` → `TalkativeBot.ask()` for prompts or `TalkativeBot.conclude()` for terminal output
 . On user input, `topic.onInput(SelectedAnswer)` runs, pending state is deleted, then `play()` continues
 . Close when no topics remain playable
 

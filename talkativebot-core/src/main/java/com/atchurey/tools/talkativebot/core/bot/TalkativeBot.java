@@ -127,6 +127,11 @@ public class TalkativeBot implements InputMessageHandler {
         return conversation.play();
     }
 
+    /**
+     * Sends a question and remembers enough conversation state (pending interaction) to handle the user's next answer.
+     * Use this when the conversation should pause here and continue/resume after
+     * the user replies.
+     */
     public CompletableFuture<Void> ask(
             Conversation<?> conversation,
             ConversationTopic topic,
@@ -143,6 +148,22 @@ public class TalkativeBot implements InputMessageHandler {
         pendingInteractionStore.save(interaction, activeScope.get(), pendingInteractionTtl);
 
         return outputChannelRegistry.send(OutgoingMessage.question(conversation.getAddress(), question));
+    }
+
+    /**
+     * Sends a final message for the conversation and closes it without waiting for another reply.
+     * Use this for terminal notes such as confirmations, receipts, or "nothing else to do" messages.
+     * Any topics still playable downstream are ignored because the conversation is explicitly done.
+     */
+    public CompletableFuture<Void> conclude(
+            Conversation<?> conversation,
+            String text) {
+        Objects.requireNonNull(conversation, "conversation must not be null");
+        Objects.requireNonNull(text, "text must not be null");
+
+        CompletableFuture<Void> sent = outputChannelRegistry.send(OutgoingMessage.text(conversation.getAddress(), text));
+        conversation.abandon();
+        return sent;
     }
 
     @Override
@@ -305,7 +326,4 @@ public class TalkativeBot implements InputMessageHandler {
         );
     }
 
-    public CompletableFuture<String> reply(String text) {
-        return CompletableFuture.completedFuture(text);
-    }
 }

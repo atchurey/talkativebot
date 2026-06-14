@@ -49,7 +49,7 @@ The flow is intentionally simple: **ask → persist pending state → resume whe
 |-------|----------------|
 | **Transport** | Console, Spring Cloud Stream, or custom channels (pluggable) |
 | **talkativebot-spring-boot-starter** | Auto-configuration, channel adapters, topic scanning, store backends |
-| **talkativebot-core** | `TalkativeBot` orchestration — `handle()`, `play()`, `ask()` |
+| **talkativebot-core** | `TalkativeBot` orchestration — `handle()`, `play()`, `ask()`, `conclude()` |
 | **Your application** | `AbstractConversation`, `@Topic` classes, `ConversationStartResolver` |
 | **Persistence** | `PendingInteractionStore` — memory, Redis, or JPA (question + facts + TTL) |
 
@@ -235,7 +235,7 @@ public class SaleConversation extends AbstractConversation<String> {
 
     @Override
     protected CompletableFuture<String> onConversationClosed() {
-        return bot.reply("Sale conversation completed.");
+        return CompletableFuture.completedFuture("Sale conversation completed.");
     }
     
 }

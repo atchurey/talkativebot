@@ -54,6 +54,8 @@ For choice questions, `DefaultOptionSelector` matches option *value* (integer pa
 == Outbound path
 
 `TalkativeBot.ask()` builds a `PendingInteraction` (address, conversation FQCN, topic key, question, facts snapshot), saves it with configured TTL, then sends `OutgoingMessage.question(...)` through `OutputChannelRegistry`.
+Use `ask()` when the bot is waiting for a user answer.
+Use `TalkativeBot.conclude()` for terminal notes that should close the conversation without creating a pending interaction.
 The first `OutputChannel` where `supports(address)` returns true handles delivery.
 
 == Address and persistence key
