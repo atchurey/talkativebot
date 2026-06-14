@@ -30,7 +30,9 @@ Topics are the atomic units of dialogue. Each topic:
 * Handles answers in `onInput(SelectedAnswer)`
 * Uses `canPlayWithFacts(Facts)` for conditional branching
 
-Extend `AbstractTopic` (starter module) for helpers: `ask()`, `fact()`, `close()`, closure fact management.
+Extend `AbstractTopic` (starter module) for helpers: `ask()`, `conclude()`, `fact()`, `close()`, closure fact management.
+Use `ask()` for prompts that wait for input.
+Use `conclude()` for terminal messages that close the conversation without waiting.
 
 **Topic registration:** `TopicScanner.scan(conversationType)` returns descriptors; instances are created via `TopicFactory` and registered in a `LinkedHashMap` keyed by topic key.
 
