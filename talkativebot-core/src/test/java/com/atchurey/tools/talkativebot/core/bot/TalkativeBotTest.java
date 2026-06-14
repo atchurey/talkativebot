@@ -44,21 +44,7 @@ class TalkativeBotTest {
         startRegistry = mock(ConversationStartRegistry.class);
         conversationFactory = mock(ConversationFactory.class);
 
-        ConversationRuntimeRegistry runtimeRegistry = new ConversationRuntimeRegistry();
-        ConversationRuntimeInitializerResolver runtimeInitializerResolver = new DefaultConversationRuntimeInitializerResolver(Collections.emptyList());
-
-        bot = new TalkativeBot(
-                properties,
-                store,
-                topicScanner,
-                new ReflectionTopicFactory(),
-                outputChannelRegistry,
-                new DefaultOptionSelector(),
-                conversationFactory,
-                startRegistry,
-                runtimeRegistry,
-                runtimeInitializerResolver
-        );
+        bot = createBot(new DefaultConversationMessageRouter());
     }
 
     private TestConversation lastConversation;
@@ -253,6 +239,101 @@ class TalkativeBotTest {
         conversation.abandon();
         assertThat(conversation.isClosed()).isTrue();
         assertThat(topic.isPlayable(conversation.getFacts())).isFalse(); // Now NOT playable because terminated
+    }
+
+    @Test
+    void shouldSaveAndResumePendingInteractionInRoutedScope() {
+        ConversationAddress address = new ConversationAddress("test", "user123", null, null);
+        ConversationScope checkoutScope = ConversationScope.of("checkout");
+        bot = createBot((message, context) -> ConversationRoute.resumeOrStart(message.getAddress(), checkoutScope));
+
+        IncomingMessage firstMessage = new IncomingMessage(address, "hello");
+        ConversationStartRequest startRequest = new ConversationStartRequest(
+                address, TestConversation.class.getName(), "hello", Collections.emptyMap());
+
+        when(startRegistry.resolve(firstMessage)).thenReturn(Optional.of(startRequest));
+
+        TopicDescriptor startTopicDesc = new TopicDescriptor("start", "start", "", false, TestConversation.class, "end", 0, StartTopic.class);
+        TopicDescriptor endTopicDesc = new TopicDescriptor("end", "end", "", false, TestConversation.class, null, 1, EndTopic.class);
+        when(topicScanner.scan(eq(TestConversation.class))).thenReturn(List.of(startTopicDesc, endTopicDesc));
+
+        when(conversationFactory.create(eq(TestConversation.class.getName()), eq(address)))
+                .thenAnswer(invocation -> {
+                    lastConversation = new TestConversation(bot, address);
+                    return lastConversation;
+                });
+
+        bot.handle(firstMessage).join();
+
+        assertThat(store.findByAddress(address)).isEmpty();
+        assertThat(store.findByAddress(address, checkoutScope)).isPresent();
+
+        IncomingMessage secondMessage = new IncomingMessage(address, "Ada");
+        bot.handle(secondMessage).join();
+
+        assertThat(store.findByAddress(address)).isEmpty();
+        assertThat(store.findByAddress(address, checkoutScope)).isPresent();
+        assertThat(store.findByAddress(address, checkoutScope).get().getCurrentTopicKey()).isEqualTo("end");
+    }
+
+    @Test
+    void shouldStartOnlyWithoutConsumingExistingPendingInteraction() {
+        ConversationAddress address = new ConversationAddress("test", "user123", null, null);
+        bot = createBot((message, context) -> {
+            if ("/status".equals(message.getText())) {
+                return ConversationRoute.startOnly(message.getAddress(), ConversationScope.of("status"));
+            }
+            return ConversationRoute.resumeOrStart(message.getAddress());
+        });
+
+        IncomingMessage firstMessage = new IncomingMessage(address, "hello");
+        ConversationStartRequest checkoutStartRequest = new ConversationStartRequest(
+                address, TestConversation.class.getName(), "hello", Collections.emptyMap());
+
+        when(startRegistry.resolve(firstMessage)).thenReturn(Optional.of(checkoutStartRequest));
+
+        TopicDescriptor startTopicDesc = new TopicDescriptor("start", "start", "", false, TestConversation.class, "end", 0, StartTopic.class);
+        TopicDescriptor endTopicDesc = new TopicDescriptor("end", "end", "", false, TestConversation.class, null, 1, EndTopic.class);
+        when(topicScanner.scan(eq(TestConversation.class))).thenReturn(List.of(startTopicDesc, endTopicDesc));
+
+        when(conversationFactory.create(eq(TestConversation.class.getName()), eq(address)))
+                .thenAnswer(invocation -> {
+                    lastConversation = new TestConversation(bot, address);
+                    return lastConversation;
+                });
+
+        bot.handle(firstMessage).join();
+        assertThat(store.findByAddress(address)).isPresent();
+
+        IncomingMessage statusMessage = new IncomingMessage(address, "/status");
+        ConversationStartRequest statusStartRequest = new ConversationStartRequest(
+                address, TestConversation.class.getName(), "/status", Collections.emptyMap());
+        when(startRegistry.resolve(statusMessage)).thenReturn(Optional.of(statusStartRequest));
+
+        bot.handle(statusMessage).join();
+
+        assertThat(store.findByAddress(address)).isPresent();
+        assertThat(store.findByAddress(address).get().getCurrentTopicKey()).isEqualTo("start");
+        assertThat(store.findByAddress(address, ConversationScope.of("status"))).isPresent();
+    }
+
+    private TalkativeBot createBot(ConversationMessageRouter messageRouter) {
+        ConversationRuntimeRegistry runtimeRegistry = new ConversationRuntimeRegistry();
+        ConversationRuntimeInitializerResolver runtimeInitializerResolver = new DefaultConversationRuntimeInitializerResolver(Collections.emptyList());
+
+        return new TalkativeBot(
+                new TalkativeBotProperties(),
+                store,
+                topicScanner,
+                new ReflectionTopicFactory(),
+                outputChannelRegistry,
+                new DefaultOptionSelector(),
+                conversationFactory,
+                startRegistry,
+                runtimeRegistry,
+                runtimeInitializerResolver,
+                messageRouter
+        );
     }
 
     public static class TestConversation extends AbstractConversation<Void> {

@@ -1,8 +1,15 @@
 package com.atchurey.tools.talkativebot.core.bot;
 
 import com.atchurey.tools.talkativebot.core.configs.TalkativeBotProperties;
+import com.atchurey.tools.talkativebot.core.channel.ConversationAddress;
+import com.atchurey.tools.talkativebot.core.channel.ConversationMessageRouter;
+import com.atchurey.tools.talkativebot.core.channel.ConversationRoute;
+import com.atchurey.tools.talkativebot.core.channel.ConversationRouteMode;
+import com.atchurey.tools.talkativebot.core.channel.ConversationRoutingContext;
+import com.atchurey.tools.talkativebot.core.channel.ConversationScope;
 import com.atchurey.tools.talkativebot.core.channel.ConversationStartRegistry;
 import com.atchurey.tools.talkativebot.core.channel.ConversationStartRequest;
+import com.atchurey.tools.talkativebot.core.channel.DefaultConversationMessageRouter;
 import com.atchurey.tools.talkativebot.core.channel.IncomingMessage;
 import com.atchurey.tools.talkativebot.core.channel.InputMessageHandler;
 import com.atchurey.tools.talkativebot.core.channel.OptionSelector;
@@ -26,6 +33,8 @@ import com.atchurey.tools.talkativebot.core.topic.TopicScanner;
 import lombok.Getter;
 
 import java.time.Duration;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class TalkativeBot implements InputMessageHandler {
@@ -45,6 +54,13 @@ public class TalkativeBot implements InputMessageHandler {
     private final ConversationStartRegistry conversationStartRegistry;
     private final ConversationRuntimeRegistry runtimeRegistry;
     private final ConversationRuntimeInitializerResolver runtimeInitializerResolver;
+    private final ConversationMessageRouter conversationMessageRouter;
+    private final ConversationRoutingContext conversationRoutingContext;
+    // The router chooses a scope while handling one inbound message. Topic code can later call ask(...)
+    // during that same call stack, but ask(...) is not passed the scope directly. This ThreadLocal lets
+    // ask(...) read the scope for the current handling thread, without mixing it with another message
+    // being handled at the same time.
+    private final ThreadLocal<ConversationScope> activeScope = ThreadLocal.withInitial(() -> ConversationScope.DEFAULT);
 
     public TalkativeBot(
             TalkativeBotProperties botProperties,
@@ -57,6 +73,33 @@ public class TalkativeBot implements InputMessageHandler {
             ConversationStartRegistry conversationStartRegistry,
             ConversationRuntimeRegistry runtimeRegistry,
             ConversationRuntimeInitializerResolver runtimeInitializerResolver) {
+        this(
+                botProperties,
+                pendingInteractionStore,
+                topicScanner,
+                topicFactory,
+                outputChannelRegistry,
+                optionSelector,
+                conversationFactory,
+                conversationStartRegistry,
+                runtimeRegistry,
+                runtimeInitializerResolver,
+                new DefaultConversationMessageRouter()
+        );
+    }
+
+    public TalkativeBot(
+            TalkativeBotProperties botProperties,
+            PendingInteractionStore pendingInteractionStore,
+            TopicScanner topicScanner,
+            TopicFactory topicFactory,
+            OutputChannelRegistry outputChannelRegistry,
+            OptionSelector optionSelector,
+            ConversationFactory conversationFactory,
+            ConversationStartRegistry conversationStartRegistry,
+            ConversationRuntimeRegistry runtimeRegistry,
+            ConversationRuntimeInitializerResolver runtimeInitializerResolver,
+            ConversationMessageRouter conversationMessageRouter) {
 
         this.botProperties = botProperties;
         this.pendingInteractionStore = pendingInteractionStore;
@@ -69,6 +112,10 @@ public class TalkativeBot implements InputMessageHandler {
         this.conversationStartRegistry = conversationStartRegistry;
         this.runtimeRegistry = runtimeRegistry;
         this.runtimeInitializerResolver = runtimeInitializerResolver;
+        this.conversationMessageRouter = conversationMessageRouter == null
+                ? new DefaultConversationMessageRouter()
+                : conversationMessageRouter;
+        this.conversationRoutingContext = pendingInteractionStore::findByAddress;
     }
 
     public TalkativeBotProperties getBotConfigProperties() {
@@ -93,20 +140,45 @@ public class TalkativeBot implements InputMessageHandler {
                 conversation.getFacts()
         );
 
-        pendingInteractionStore.save(interaction, pendingInteractionTtl);
+        pendingInteractionStore.save(interaction, activeScope.get(), pendingInteractionTtl);
 
         return outputChannelRegistry.send(OutgoingMessage.question(conversation.getAddress(), question));
     }
 
     @Override
     public CompletableFuture<Void> handle(IncomingMessage message) {
-        return pendingInteractionStore.findByAddress(message.getAddress())
-                .map(interaction -> resumeConversation(message, interaction))
-                .orElseGet(() -> startConversationOrReject(message));
+        Objects.requireNonNull(message, "message must not be null");
+
+        ConversationRoute route = conversationMessageRouter.route(message, conversationRoutingContext);
+        if (route == null) {
+            route = ConversationRoute.resumeOrStart(message.getAddress());
+        }
+
+        IncomingMessage routedMessage = withAddress(message, route.address());
+
+        if (ConversationRouteMode.REJECT.equals(route.mode())) {
+            return noConversationStarted(routedMessage);
+        }
+
+        if (ConversationRouteMode.START_ONLY.equals(route.mode())) {
+            return startConversationOrReject(routedMessage, route.scope());
+        }
+
+        Optional<PendingInteraction> pendingInteraction = pendingInteractionStore.findByAddress(route.address(), route.scope());
+        if (pendingInteraction.isPresent()) {
+            return resumeConversation(routedMessage, route.scope(), pendingInteraction.get());
+        }
+
+        if (ConversationRouteMode.RESUME_ONLY.equals(route.mode())) {
+            return noConversationStarted(routedMessage);
+        }
+
+        return startConversationOrReject(routedMessage, route.scope());
     }
 
     private CompletableFuture<Void> resumeConversation(
             IncomingMessage message,
+            ConversationScope scope,
             PendingInteraction interaction) {
         Question question = interaction.getQuestion();
 
@@ -135,21 +207,24 @@ public class TalkativeBot implements InputMessageHandler {
 
         topic.onInput(new SelectedAnswer(selectedOption, message.getText(), message));
 
-        pendingInteractionStore.deleteByAddress(message.getAddress());
+        pendingInteractionStore.deleteByAddress(message.getAddress(), scope);
 
-        conversation.play();
+        playInScope(conversation, scope);
 
         return CompletableFuture.completedFuture(null);
     }
 
-    private CompletableFuture<Void> startConversationOrReject(IncomingMessage message) {
+    private CompletableFuture<Void> startConversationOrReject(
+            IncomingMessage message,
+            ConversationScope scope) {
         return conversationStartRegistry.resolve(message)
-                .map(startRequest -> startConversation(message, startRequest))
+                .map(startRequest -> startConversation(message, scope, startRequest))
                 .orElseGet(() -> noConversationStarted(message));
     }
 
     private CompletableFuture<Void> startConversation(
             IncomingMessage message,
+            ConversationScope scope,
             ConversationStartRequest startRequest) {
         Conversation<?> conversation = conversationFactory.create(
                 startRequest.getConversationType(),
@@ -161,9 +236,46 @@ public class TalkativeBot implements InputMessageHandler {
         conversation.getFacts().put("__talkative.start.raw_input", message.getText());
         hydrateConversationRuntime(conversation);
 
-        conversation.play();
+        playInScope(conversation, scope);
 
         return CompletableFuture.completedFuture(null);
+    }
+
+    private void playInScope(
+            Conversation<?> conversation,
+            ConversationScope scope
+    ) {
+        ConversationScope previousScope = activeScope.get();
+        // Begin the synchronous routed-scope window for the current handle(...) call.
+        activeScope.set(scope == null ? ConversationScope.DEFAULT : scope);
+        try {
+            conversation.play();
+        } finally {
+            // End the synchronous routed-scope window and restore the caller's scope.
+            activeScope.set(previousScope);
+        }
+    }
+
+    private IncomingMessage withAddress(
+            IncomingMessage message,
+            ConversationAddress address
+    ) {
+        if (message.getAddress().equals(address)) {
+            return message;
+        }
+
+        return new IncomingMessage(
+                message.getId(),
+                address,
+                message.getText(),
+                message.getReceivedAt(),
+                message.getEventType(),
+                message.getChannel(),
+                message.getExternalIdentity(),
+                message.getReferral(),
+                message.getMetadata(),
+                message.getRawPayloadReference()
+        );
     }
 
     private void hydrateConversationRuntime(Conversation<?> conversation) {
