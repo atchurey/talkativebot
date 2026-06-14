@@ -217,7 +217,7 @@ public class TalkativeBot implements InputMessageHandler {
     private CompletableFuture<Void> startConversationOrReject(
             IncomingMessage message,
             ConversationScope scope) {
-        return conversationStartRegistry.resolve(message)
+        return conversationStartRegistry.resolve(message, scope)
                 .map(startRequest -> startConversation(message, scope, startRequest))
                 .orElseGet(() -> noConversationStarted(message));
     }

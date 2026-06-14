@@ -353,6 +353,28 @@ Route modes:
 Routers receive a `ConversationRoutingContext` so they can inspect pending interactions by address and scope before making a decision.
 The context is read-only; the router decides where the message belongs, while TalkativeBot still owns persistence changes.
 
+=== Scoped start resolvers
+
+The router decides the scope for an inbound message.
+Start resolvers decide which conversation, if any, should start inside that scope.
+
+Use `ConversationMessageRouter` for message-level routing decisions, such as detecting that `/status` belongs to an `order-status` lane.
+Use `ScopedConversationStartResolver` when a start resolver should only be considered for specific lanes:
+
+[source,java]
+----
+public interface ScopedConversationStartResolver extends ConversationStartResolver {
+    boolean supportsScope(ConversationScope scope);
+}
+----
+
+For default-scope bots, existing `ConversationStartResolver` implementations continue to work.
+When TalkativeBot starts a non-default scope, unscoped resolvers are not considered.
+This avoids starting the wrong conversation in the right scope just because an older resolver appears first in resolver order.
+
+Resolver order remains deterministic.
+TalkativeBot first filters resolvers by the selected scope, then evaluates the remaining resolvers in their configured order.
+
 === Incoming message envelope
 
 `IncomingMessage` is the inbound event envelope that client integrations pass into `TalkativeBot.handle(...)`.
@@ -799,7 +821,7 @@ atchurey.tools.talkativebot.channels.console-enabled=true
 | `@Topic`
 
 | `core.channel`
-| `InputChannel`, `OutputChannel`, `IncomingMessage`, `OutgoingMessage`, `ConversationAddress`, `ConversationScope`, `ChannelInfo`, `ExternalIdentity`, `ReferralContext`, `PendingInteraction`, `PendingInteractionStore`, `ConversationStartResolver`, registries
+| `InputChannel`, `OutputChannel`, `IncomingMessage`, `OutgoingMessage`, `ConversationAddress`, `ConversationScope`, `ChannelInfo`, `ExternalIdentity`, `ReferralContext`, `PendingInteraction`, `PendingInteractionStore`, `ConversationStartResolver`, `ScopedConversationStartResolver`, registries
 
 | `core.channel.console`
 | `ConsoleInputChannel`, `ConsoleOutputChannel`
@@ -855,6 +877,9 @@ Developers customize TalkativeBot by implementing:
 
 | `ConversationStartResolver`
 | Map inbound text/commands to `ConversationStartRequest`
+
+| `ScopedConversationStartResolver`
+| Limit a start resolver to selected conversation scopes
 
 | `ConversationRuntimeInitializer`
 | Shared WebClients, repositories per conversation type

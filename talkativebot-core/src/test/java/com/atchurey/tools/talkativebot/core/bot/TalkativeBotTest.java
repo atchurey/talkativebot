@@ -58,7 +58,7 @@ class TalkativeBotTest {
         ConversationStartRequest startRequest = new ConversationStartRequest(
                 address, TestConversation.class.getName(), "hello", Collections.emptyMap());
 
-        when(startRegistry.resolve(firstMessage)).thenReturn(Optional.of(startRequest));
+        when(startRegistry.resolve(firstMessage, ConversationScope.DEFAULT)).thenReturn(Optional.of(startRequest));
 
         // Mock topic scanning for TestConversation
         TopicDescriptor startTopicDesc = new TopicDescriptor("start", "start", "", false, TestConversation.class, "end", 0, StartTopic.class);
@@ -103,7 +103,7 @@ class TalkativeBotTest {
         ConversationAddress address = new ConversationAddress("test", "user123", null, null);
         IncomingMessage message = new IncomingMessage(address, "unknown");
 
-        when(startRegistry.resolve(message)).thenReturn(Optional.empty());
+        when(startRegistry.resolve(message, ConversationScope.DEFAULT)).thenReturn(Optional.empty());
 
         bot.handle(message).join();
 
@@ -120,7 +120,7 @@ class TalkativeBotTest {
         ConversationAddress address = new ConversationAddress("test", "user123", null, null);
         IncomingMessage message = new IncomingMessage(address, "unknown");
 
-        when(startRegistry.resolve(message)).thenReturn(Optional.empty());
+        when(startRegistry.resolve(message, ConversationScope.DEFAULT)).thenReturn(Optional.empty());
         when(outputChannelRegistry.send(any())).thenReturn(CompletableFuture.failedFuture(new RuntimeException("Send failed")));
 
         CompletableFuture<Void> result = bot.handle(message);
@@ -137,7 +137,7 @@ class TalkativeBotTest {
         ConversationStartRequest startRequest = new ConversationStartRequest(
                 address, TestConversation.class.getName(), "hello", Collections.emptyMap());
 
-        when(startRegistry.resolve(firstMessage)).thenReturn(Optional.of(startRequest));
+        when(startRegistry.resolve(firstMessage, ConversationScope.DEFAULT)).thenReturn(Optional.of(startRequest));
 
         // Mock topic scanning
         TopicDescriptor multiTopicDesc = new TopicDescriptor("multi", "multi", "", false, TestConversation.class, null, 0, MultiStepTopic.class);
@@ -185,7 +185,7 @@ class TalkativeBotTest {
         ConversationStartRequest startRequest = new ConversationStartRequest(
                 address, TestConversation.class.getName(), "start", Collections.emptyMap());
 
-        when(startRegistry.resolve(message)).thenReturn(Optional.of(startRequest));
+        when(startRegistry.resolve(message, ConversationScope.DEFAULT)).thenReturn(Optional.of(startRequest));
 
         TopicDescriptor replayTopicDesc = new TopicDescriptor("replay", "replay", "", true, TestConversation.class, null, 0, ReplayableTopic.class);
         when(topicScanner.scan(eq(TestConversation.class))).thenReturn(List.of(replayTopicDesc));
@@ -251,7 +251,7 @@ class TalkativeBotTest {
         ConversationStartRequest startRequest = new ConversationStartRequest(
                 address, TestConversation.class.getName(), "hello", Collections.emptyMap());
 
-        when(startRegistry.resolve(firstMessage)).thenReturn(Optional.of(startRequest));
+        when(startRegistry.resolve(firstMessage, checkoutScope)).thenReturn(Optional.of(startRequest));
 
         TopicDescriptor startTopicDesc = new TopicDescriptor("start", "start", "", false, TestConversation.class, "end", 0, StartTopic.class);
         TopicDescriptor endTopicDesc = new TopicDescriptor("end", "end", "", false, TestConversation.class, null, 1, EndTopic.class);
@@ -290,7 +290,7 @@ class TalkativeBotTest {
         ConversationStartRequest checkoutStartRequest = new ConversationStartRequest(
                 address, TestConversation.class.getName(), "hello", Collections.emptyMap());
 
-        when(startRegistry.resolve(firstMessage)).thenReturn(Optional.of(checkoutStartRequest));
+        when(startRegistry.resolve(firstMessage, ConversationScope.DEFAULT)).thenReturn(Optional.of(checkoutStartRequest));
 
         TopicDescriptor startTopicDesc = new TopicDescriptor("start", "start", "", false, TestConversation.class, "end", 0, StartTopic.class);
         TopicDescriptor endTopicDesc = new TopicDescriptor("end", "end", "", false, TestConversation.class, null, 1, EndTopic.class);
@@ -308,13 +308,33 @@ class TalkativeBotTest {
         IncomingMessage statusMessage = new IncomingMessage(address, "/status");
         ConversationStartRequest statusStartRequest = new ConversationStartRequest(
                 address, TestConversation.class.getName(), "/status", Collections.emptyMap());
-        when(startRegistry.resolve(statusMessage)).thenReturn(Optional.of(statusStartRequest));
+        when(startRegistry.resolve(statusMessage, ConversationScope.of("status"))).thenReturn(Optional.of(statusStartRequest));
 
         bot.handle(statusMessage).join();
 
         assertThat(store.findByAddress(address)).isPresent();
         assertThat(store.findByAddress(address).get().getCurrentTopicKey()).isEqualTo("start");
         assertThat(store.findByAddress(address, ConversationScope.of("status"))).isPresent();
+    }
+
+    @Test
+    void shouldNotUseDefaultScopeStartResolverForNonDefaultRoute() {
+        ConversationAddress address = new ConversationAddress("test", "user123", null, null);
+        ConversationScope statusScope = ConversationScope.of("status");
+        bot = createBot((message, context) -> ConversationRoute.startOnly(message.getAddress(), statusScope));
+
+        IncomingMessage statusMessage = new IncomingMessage(address, "/status");
+        ConversationStartRequest checkoutStartRequest = new ConversationStartRequest(
+                address, TestConversation.class.getName(), "/status", Collections.emptyMap());
+        when(startRegistry.resolve(statusMessage, ConversationScope.DEFAULT)).thenReturn(Optional.of(checkoutStartRequest));
+        when(startRegistry.resolve(statusMessage, statusScope)).thenReturn(Optional.empty());
+
+        bot.handle(statusMessage).join();
+
+        verify(startRegistry).resolve(statusMessage, statusScope);
+        verify(startRegistry, never()).resolve(statusMessage, ConversationScope.DEFAULT);
+        assertThat(store.findByAddress(address)).isEmpty();
+        assertThat(store.findByAddress(address, statusScope)).isEmpty();
     }
 
     private TalkativeBot createBot(ConversationMessageRouter messageRouter) {
