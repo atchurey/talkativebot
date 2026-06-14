@@ -3,7 +3,7 @@
 
     <groupId>com.atchurey.tools</groupId>
     <artifactId>talkativebot-parent</artifactId>
-    <version>0.0.7-SNAPSHOT</version>
+    <version>0.0.7</version>
     <packaging>pom</packaging>
     <name>talkativebot-parent</name>
     <description>A library for building and playing conversation flows</description>
@@ -49,7 +49,7 @@
         <connection>scm:git:${env.GITHUB_GIT_HTTP_ORIGIN}</connection>
         <developerConnection>scm:git:${env.GITHUB_GIT_HTTP_ORIGIN}</developerConnection>
         <url>${env.GITHUB_GIT_HTTP_ORIGIN}</url>
-        <tag>HEAD</tag>
+        <tag>v0.0.7</tag>
     </scm>
 
     <distributionManagement>
