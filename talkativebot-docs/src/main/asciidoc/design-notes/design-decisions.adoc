@@ -1,4 +1,6 @@
-== Design Decisions and Trade-offs
+= Design Decisions and Trade-offs
+
+xref:../index.adoc[Documentation Home] | xref:index.adoc[Design Notes]
 
 [cols="2,2,2", options="header"]
 |===
@@ -41,3 +43,4 @@
 * JPA expired-row cleanup is not scheduled
 * Redis store expects a `RedisOperations<String, Object>` bean
 
+xref:../index.adoc[Documentation Home] | xref:index.adoc[Design Notes]

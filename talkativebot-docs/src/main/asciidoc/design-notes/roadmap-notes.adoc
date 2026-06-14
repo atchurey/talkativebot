@@ -1,6 +1,8 @@
-== TODO
+= Roadmap Notes
 
-Upcoming work, known gaps to close, and planned features. Items are listed in rough priority order.
+xref:../index.adoc[Documentation Home] | xref:index.adoc[Design Notes]
+
+Known gaps and planned work. Linear remains the source of truth for active tracking.
 
 . *Auto-register Spring Cloud Stream channels* — Today, Spring Cloud Stream is not auto-registered; applications must declare `SpringCloudStreamOutputChannel` and `Consumer<IncomingMessage>` beans explicitly (see `example-stream-redis/agent-one`). Add starter auto-configuration so stream input/output channels are registered when Spring Cloud Stream is on the classpath, aligned with how console channels are registered via `TalkativeBotConsoleAutoConfiguration`.
 . *Integration tests for Redis, JPA, and Spring Cloud Stream* — Core and starter slice tests cover defaults and fail-fast configuration; add end-to-end tests against real (or Testcontainers) Redis, JPA, and stream bindings to verify pending interaction persistence and message flow.
@@ -8,3 +10,4 @@ Upcoming work, known gaps to close, and planned features. Items are listed in ro
 . *Structured errors for invalid choice answers* — Invalid option replies throw `IllegalArgumentException` with no channel-friendly error response. Return a structured error (e.g. via `OutgoingMessage`) so users can retry without an unhandled failure.
 . *Scheduled JPA expired-row cleanup* — `JpaPendingInteractionStore.deleteExpired()` exists but is never scheduled. Add a periodic job or Boot scheduling integration to purge expired pending interactions from the database.
 
+xref:../index.adoc[Documentation Home] | xref:index.adoc[Design Notes]

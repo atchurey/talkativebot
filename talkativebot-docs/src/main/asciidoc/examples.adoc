@@ -1,3 +1,7 @@
+= Examples and Testing
+
+xref:index.adoc[Documentation Home]
+
 == Examples
 
 === example-console (checkout flow)
@@ -58,3 +62,4 @@ Slice tests with `ApplicationContextRunner` verify default beans, property mappi
 
 `@SpringBootTest` context-load tests only — no end-to-end conversation assertions.
 
+xref:index.adoc[Documentation Home]

@@ -1,6 +1,8 @@
-== Architecture
+= Architecture
 
-=== Central orchestrator
+xref:index.adoc[Documentation Home]
+
+== Central orchestrator
 
 `com.atchurey.tools.talkativebot.core.bot.TalkativeBot` is the single entry point for message handling and conversation execution. It implements `InputMessageHandler` and coordinates:
 
@@ -39,7 +41,7 @@ Key public operations:
 * `ask(conversation, topic, question)` — save `PendingInteraction`, send `OutgoingMessage.question(...)`
 * `handle(IncomingMessage)` — route inbound message, resume pending interaction, or start via `ConversationStartResolver`
 
-=== Conversation engine
+== Conversation engine
 
 `AbstractConversation<T>` discovers topics at construction time, sorts them by `order` then `key`, and drives the flow through `play()`:
 
@@ -50,11 +52,11 @@ Key public operations:
 
 `Facts` (`LinkedHashMap<String, Object>`, Jackson-serializable) carry business state and framework markers (`__talkative.topic.<key>.closed`, `__talkative.start.*`).
 
-=== Conversation runtime
+== Conversation runtime
 
 `ConversationRuntime` is an in-memory, keyed resource bag for *infrastructure* a conversation type needs while it runs — HTTP clients, repositories, API facades, and similar beans. It is **not** where durable conversation state lives.
 
-==== How it is created and attached
+=== How it is created and attached
 
 . Register a `ConversationRuntimeInitializer` (Spring bean or manual wiring) that `supports` your conversation class and builds a `ConversationRuntime` (typically via `DefaultConversationRuntime.builder()`).
 . On every `play()` and every inbound `handle()` resume, `TalkativeBot` calls `hydrateConversationRuntime()`:
@@ -63,7 +65,7 @@ Key public operations:
 
 Conversation objects themselves are often short-lived: they are created by `ConversationFactory`, run a step, and may be discarded until the next message. The runtime outlives any single conversation instance on that JVM.
 
-==== Per application instance, not distributed
+=== Per application instance, not distributed
 
 `ConversationRuntimeRegistry` is a local `ConcurrentHashMap` inside the running process. Each application instance (JVM, pod, or node) maintains its own registry.
 
@@ -73,7 +75,7 @@ Conversation objects themselves are often short-lived: they are created by `Conv
 
 This model fits deployments where *durable* progress is carried by `PendingInteractionStore` and `Facts`, while *ephemeral* infrastructure is rebuilt cheaply on each instance.
 
-==== Safe across async hops, scaling, and restarts
+=== Safe across async hops, scaling, and restarts
 
 Human-in-the-loop flows are inherently asynchronous: ask on one request, resume minutes later on another thread, another pod, or after a redeploy.
 
@@ -86,7 +88,7 @@ Human-in-the-loop flows are inherently asynchronous: ask on one request, resume 
 
 The runtime is safe for these hops because it holds only *replaceable infrastructure*, not conversation-specific business outcomes. If a `WebClient` or repository is recreated after restart, the flow still continues as long as `Facts` (and the pending interaction snapshot) describe what step the user is on.
 
-==== One runtime per conversation type, per JVM
+=== One runtime per conversation type, per JVM
 
 Within a single application instance, all active conversations of the same type (e.g. every `CheckoutConversation` on that node) share one `ConversationRuntime` for that type. That is intentional: it avoids opening a new connection pool or client per user session.
 
@@ -96,7 +98,7 @@ Do **not** store per-user or per-session durable data in the runtime — use `Fa
 * resumption on a different node (with a shared pending store);
 * class recreation after rename/deploy (for in-flight interactions, subject to conversation class name stability).
 
-==== Facts vs runtime — what goes where
+=== Facts vs runtime — what goes where
 
 [cols="2,3", options="header"]
 |===
@@ -114,11 +116,11 @@ Do **not** store per-user or per-session durable data in the runtime — use `Fa
 
 `Facts` are Jackson-serializable and copied into `PendingInteraction` when `TalkativeBot.ask()` runs. Treat them as the source of truth for *what* the conversation knows. Treat the runtime as *how* the conversation talks to the outside world on this JVM.
 
-==== Example
+=== Example
 
 The joke factory demo (`JokeFactoryConversationRuntimeInitializer`) registers a `WebClient` and joke API helper in the runtime. Topic code reads it via `getRuntime().get(key, JokeFactoryRuntime.class)`. Joke type, action, and joke id live in `Facts` so the punchline step can resume correctly after the user replies.
 
-=== Layered view
+== Layered view
 
 [source]
 ----
@@ -138,3 +140,4 @@ The joke factory demo (`JokeFactoryConversationRuntimeInitializer`) registers a 
 └─────────────────────────────────────────────────────────────┘
 ----
 
+xref:index.adoc[Documentation Home]

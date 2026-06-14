@@ -1,3 +1,7 @@
+= Extension Points and Package Inventory
+
+xref:index.adoc[Documentation Home]
+
 == Package Inventory
 
 === talkativebot-core (main packages)
@@ -98,3 +102,4 @@ Developers customize TalkativeBot by implementing:
 | Non-Spring topic discovery
 |===
 
+xref:index.adoc[Documentation Home]

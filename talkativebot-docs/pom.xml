@@ -22,7 +22,7 @@
                 <groupId>org.asciidoctor</groupId>
                 <artifactId>asciidoctor-maven-plugin</artifactId>
                 <configuration>
-                    <sourceDocumentName>index.adoc</sourceDocumentName>
+                    <preserveDirectories>true</preserveDirectories>
                     <attributes>
                         <project-version>${project.version}</project-version>
                     </attributes>

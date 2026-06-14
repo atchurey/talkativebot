@@ -1,3 +1,7 @@
+= Overview
+
+xref:index.adoc[Documentation Home]
+
 == Summary
 
 TalkativeBot is a Java 17 / Spring Boot 3 multi-module library for building *stateful, channel-agnostic conversation flows*.
@@ -80,3 +84,4 @@ talkativebot-parent
 * Lombok and Apache Commons Lang3 (parent-managed)
 * License: Apache 2.0
 
+xref:index.adoc[Documentation Home]

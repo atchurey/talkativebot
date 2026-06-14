@@ -1,6 +1,8 @@
-== Persistence
+= Persistence
 
-=== PendingInteraction model
+xref:index.adoc[Documentation Home]
+
+== PendingInteraction model
 
 A pending interaction captures everything needed to resume after an async human reply:
 
@@ -29,7 +31,7 @@ key = address.persistenceKey() + "|scope:" + scope
 
 This allows multiple internal workflow lanes to wait for replies for the same external address.
 
-=== Store implementations
+== Store implementations
 
 [cols="2,2,3", options="header"]
 |===
@@ -56,3 +58,4 @@ Misconfiguration is fail-fast: selecting `redis` or `database` without the requi
 * JPA `deleteExpired()` exists but is not scheduled automatically
 * Ongoing or persisted conversations break if conversation classes are renamed
 
+xref:index.adoc[Documentation Home]

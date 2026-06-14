@@ -1,3 +1,7 @@
+= Getting Started
+
+xref:index.adoc[Documentation Home]
+
 == Installation
 
 [source,xml,subs="attributes,verbatim"]
@@ -122,3 +126,4 @@ public class PaymentMethodTopic extends AbstractTopic {
 }
 ----
 
+xref:index.adoc[Documentation Home]

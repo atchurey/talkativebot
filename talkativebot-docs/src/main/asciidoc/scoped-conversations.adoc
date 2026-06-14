@@ -1,0 +1,80 @@
+= Scoped Conversations
+
+xref:index.adoc[Documentation Home]
+
+== Conversation scope
+
+`ConversationScope` names the internal workflow lane that should handle a message.
+It is deliberately separate from `ConversationAddress`:
+
+[source]
+----
+ConversationAddress = where/who the message came from
+ConversationScope   = which internal workflow should handle it
+----
+
+`ConversationScope.DEFAULT` is available for simple bots that only run one workflow per address.
+Custom scopes are generic strings such as `checkout`, `payment`, or `order-status`; TalkativeBot core does not prescribe application-specific names.
+
+Pending interaction storage is scope-aware.
+The default scope keeps the historical address key, while custom scopes allow multiple workflow lanes to wait for replies for the same external address.
+
+== Conversation routing
+
+`ConversationMessageRouter` runs before pending interaction lookup.
+It returns a `ConversationRoute` made of:
+
+* `ConversationAddress` — the external address TalkativeBot should use for lookup and replies
+* `ConversationScope` — the internal workflow lane for that address
+* `ConversationRouteMode` — whether to resume, start, or reject
+
+The default router preserves existing behavior: use the incoming address, use `ConversationScope.DEFAULT`, and resume a pending interaction when one exists or start a conversation otherwise.
+
+Applications can provide a custom Spring bean or constructor argument when the same user/address can have parallel workflows.
+For example, `/status` can be routed into an `order-status` scope without consuming the pending checkout question, while normal text continues to resume the checkout scope.
+
+Route modes:
+
+[cols="1,3", options="header"]
+|===
+| Mode | Behavior
+
+| `RESUME_OR_START`
+| Resume a pending interaction for the selected address/scope, or start a new conversation when none exists.
+
+| `RESUME_ONLY`
+| Resume only if a pending interaction exists. If not, the message is rejected through the normal no-conversation-started path.
+
+| `START_ONLY`
+| Start a new conversation without checking or consuming pending interactions for the address.
+
+| `REJECT`
+| Reject before resume/start resolution.
+|===
+
+Routers receive a `ConversationRoutingContext` so they can inspect pending interactions by address and scope before making a decision.
+The context is read-only; the router decides where the message belongs, while TalkativeBot still owns persistence changes.
+
+== Scoped start resolvers
+
+The router decides the scope for an inbound message.
+Start resolvers decide which conversation, if any, should start inside that scope.
+
+Use `ConversationMessageRouter` for message-level routing decisions, such as detecting that `/status` belongs to an `order-status` lane.
+Use `ScopedConversationStartResolver` when a start resolver should only be considered for specific lanes:
+
+[source,java]
+----
+public interface ScopedConversationStartResolver extends ConversationStartResolver {
+    boolean supportsScope(ConversationScope scope);
+}
+----
+
+For default-scope bots, existing `ConversationStartResolver` implementations continue to work.
+When TalkativeBot starts a non-default scope, unscoped resolvers are not considered.
+This avoids starting the wrong conversation in the right scope just because an older resolver appears first in resolver order.
+
+Resolver order remains deterministic.
+TalkativeBot first filters resolvers by the selected scope, then evaluates the remaining resolvers in their configured order.
+
+xref:index.adoc[Documentation Home]

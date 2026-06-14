@@ -1,6 +1,8 @@
-== Core Concepts
+= Core Concepts
 
-=== Conversations
+xref:index.adoc[Documentation Home]
+
+== Conversations
 
 A conversation orchestrates an ordered graph of topics. Subclass `AbstractConversation<T>` and optionally override:
 
@@ -19,7 +21,7 @@ talkativebot.play(new SaleConversation(talkativebot, consoleAddress));
 
 Or triggered automatically via `ConversationStartResolver` when inbound messages do not match a pending interaction.
 
-=== Topics
+== Topics
 
 Topics are the atomic units of dialogue. Each topic:
 
@@ -34,7 +36,7 @@ Extend `AbstractTopic` (starter module) for helpers: `ask()`, `fact()`, `close()
 
 **Default key:** decapitalized simple class name when `@Topic.key` is blank.
 
-=== Topic progression: `next` vs `order`
+== Topic progression: `next` vs `order`
 
 [cols="1,3", options="header"]
 |===
@@ -55,7 +57,7 @@ Extend `AbstractTopic` (starter module) for helpers: `ask()`, `fact()`, `close()
 
 `order` and `next` work together: `next` selects the immediate successor when the target topic is playable; `order` governs registration, the first topic when none is current, and fallback when `next` is unset, invalid, or not playable.
 
-=== Channels
+== Channels
 
 Channels adapt transport to the framework's message model:
 
@@ -81,8 +83,9 @@ Built-in and starter-provided channels:
 
 Spring Cloud Stream is not auto-registered; applications declare stream beans explicitly (see `example-stream-redis/agent-one`).
 
-=== Questions and answers
+== Questions and answers
 
 `Question` supports text and choice types (`QuestionType`). Choice questions use `Option` (value + display text).
 `SelectedAnswer` wraps the matched option (if any), raw text, and the original `IncomingMessage`.
 
+xref:index.adoc[Documentation Home]

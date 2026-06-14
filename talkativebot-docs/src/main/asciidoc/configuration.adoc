@@ -1,4 +1,6 @@
-== Configuration Reference
+= Configuration Reference
+
+xref:index.adoc[Documentation Home]
 
 All properties use the prefix `atchurey.tools.talkativebot`.
 
@@ -52,7 +54,7 @@ All properties use the prefix `atchurey.tools.talkativebot`.
 | TTL for pending interactions (all store types)
 |===
 
-=== Example configuration
+== Example configuration
 
 [source,properties]
 ----
@@ -63,3 +65,4 @@ atchurey.tools.talkativebot.channels.enabled=true
 atchurey.tools.talkativebot.channels.console-enabled=true
 ----
 
+xref:index.adoc[Documentation Home]
