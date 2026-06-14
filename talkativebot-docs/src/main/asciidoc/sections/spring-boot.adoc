@@ -1,0 +1,39 @@
+== Spring Boot Integration
+
+=== Auto-configuration
+
+Registered in `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`:
+
+[source]
+----
+TalkativeBotConversationRuntimeAutoConfiguration  (before main)
+TalkativeBotRedisAutoConfiguration                (before main, conditional)
+TalkativeBotJpaAutoConfiguration                  (before main, conditional)
+TalkativeBotAutoConfiguration
+TalkativeBotConsoleAutoConfiguration
+----
+
+`TalkativeBotAutoConfiguration` provides (when not overridden):
+
+* `TalkativeBot` bean
+* `SpringTopicScanner`, `SpringTopicFactory`
+* `ReflectionConversationFactory`
+* `DefaultConversationMessageRouter`
+* `OutputChannelRegistry`, `ConversationStartRegistry`
+* `InputChannelLifecycle` when channels enabled
+* Store bean selected by `pending-interaction.store`
+
+`TalkativeBotConsoleAutoConfiguration` registers console channels when `channels.console-enabled=true`.
+
+=== Required application conventions
+
+* Set `atchurey.tools.talkativebot.topic-base-package` to the package containing `@Topic` classes
+* Conversation classes: public constructor `(TalkativeBot, ConversationAddress)`
+* Topic classes: Spring `@Component` or constructor `(Conversation<?>)` / no-arg
+* For stream integration: declare `SpringCloudStreamOutputChannel` and `Consumer<IncomingMessage>` beans
+
+=== Core-only usage
+
+Without the starter, you must supply implementations of `TopicScanner` and `TopicFactory` (core provides `ReflectionTopicFactory` only).
+`ConsoleInputChannel` and `ConsoleOutputChannel` are available in core; `InMemoryPendingInteractionStore` is the default store.
+

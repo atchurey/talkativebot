@@ -1,0 +1,124 @@
+== Installation
+
+[source,xml,subs="attributes,verbatim"]
+----
+<dependency>
+    <groupId>com.atchurey.tools</groupId>
+    <artifactId>talkativebot-spring-boot-starter</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+== Quick Start
+
+=== Manual conversation start
+
+[source,java]
+----
+@Autowired
+TalkativeBot talkativebot;
+
+ConversationAddress consoleAddress = new ConversationAddress(
+    "console",
+    "console-user-1",
+    "console-session-1"
+);
+talkativebot.play(new SaleConversation(talkativebot, consoleAddress));
+----
+
+=== Automatic start via resolver
+
+[source,java]
+----
+@Component
+public class SaleConversationStartResolver implements ConversationStartResolver {
+
+    @Override
+    public Optional<ConversationStartRequest> resolve(IncomingMessage message) {
+        if (!"/start".equalsIgnoreCase(message.getText().trim())) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new ConversationStartRequest(
+                message.getAddress(),
+                SaleConversation.class.getName(),
+                "/start",
+                Map.of(
+                        "source_channel", message.getAddress().getChannel(),
+                        "external_user_id", valueOrEmpty(message.getAddress().getUserId())
+                )
+        ));
+    }
+
+    private Serializable valueOrEmpty(String value) {
+        return value == null ? "" : value;
+    }
+}
+----
+
+=== Conversation implementation
+
+[source,java]
+----
+public class SaleConversation extends AbstractConversation<String> {
+
+    public SaleConversation(TalkativeBot bot, ConversationAddress address) {
+        super(bot, address);
+    }
+
+    @Override
+    protected CompletableFuture<String> onTopicPlayed(ConversationTopic topic) {
+        if (isClosed()) {
+            return onConversationClosed();
+        }
+        return CompletableFuture.completedFuture("Played topic: " + topic.getKey());
+    }
+
+    @Override
+    protected CompletableFuture<String> onConversationClosed() {
+        return bot.reply("Sale conversation completed.");
+    }
+}
+----
+
+=== Topic implementation
+
+[source,java]
+----
+@Topic(
+    key = "payment_method",
+    name = "Payment Method",
+    description = "Choose your payment method",
+    conversation = SaleConversation.class,
+    canReplay = true,
+    next = "complete_sale",
+    order = 4
+)
+public class PaymentMethodTopic extends AbstractTopic {
+
+    public PaymentMethodTopic(Conversation<?> conversation) {
+        super(conversation);
+    }
+
+    @Override
+    protected boolean canPlayWithFacts(@NonNull Facts facts) {
+        return true;
+    }
+
+    @Override
+    protected void doPlay(Facts facts) {
+        Question question = new Question("Choose your payment method.",
+                new Option[]{
+                        new Option(0, "CARD"),
+                        new Option(1, "CASH")
+                });
+        getBot().ask(conversation, this, question);
+    }
+
+    @Override
+    public void onInput(SelectedAnswer selectedAnswer) {
+        logger.info("User selected payment method: {}", selectedAnswer.getText());
+    }
+}
+----
+

@@ -1,0 +1,58 @@
+== Persistence
+
+=== PendingInteraction model
+
+A pending interaction captures everything needed to resume after an async human reply:
+
+* `ConversationAddress`
+* Conversation type (FQCN string)
+* Current topic key
+* `Question` being asked
+* `Facts` snapshot
+* Timestamps and TTL metadata
+
+Pending interaction keys are scope-aware.
+The default scope keeps the legacy address key so existing persisted interactions can still be found:
+
+[source]
+----
+scope = default
+key   = address.persistenceKey()
+----
+
+Non-default scopes append the scope value:
+
+[source]
+----
+key = address.persistenceKey() + "|scope:" + scope
+----
+
+This allows multiple internal workflow lanes to wait for replies for the same external address.
+
+=== Store implementations
+
+[cols="2,2,3", options="header"]
+|===
+| Store | Property value | Implementation
+
+| In-memory
+| `memory` (default)
+| `InMemoryPendingInteractionStore` — scope-aware `ConcurrentHashMap`, expiry checked on read
+
+| Redis
+| `redis`
+| `RedisPendingInteractionStore` — key `talkativebot:pending-interaction:{pendingInteractionKey}`, Redis TTL
+
+| Database
+| `database`
+| `JpaPendingInteractionStore` — `PendingInteractionEntity` with scoped `addressKey`, JSON payload, and `expiresAt`
+|===
+
+Misconfiguration is fail-fast: selecting `redis` or `database` without the required beans throws at startup via conditional failure beans.
+
+*Limitations:*
+
+* One pending interaction per address/scope pair — no stacked questions inside the same workflow lane
+* JPA `deleteExpired()` exists but is not scheduled automatically
+* Ongoing or persisted conversations break if conversation classes are renamed
+

@@ -1,0 +1,88 @@
+== Core Concepts
+
+=== Conversations
+
+A conversation orchestrates an ordered graph of topics. Subclass `AbstractConversation<T>` and optionally override:
+
+* `onTopicPlayed(ConversationTopic)` — after a topic finishes without closing the conversation
+* `onConversationClosed()` — when all topics are exhausted or closed
+* `onAlreadyClosed()` — if `play()` is invoked on a closed conversation
+
+**Required constructor convention:** public `(TalkativeBot bot, ConversationAddress address)` for `ReflectionConversationFactory`.
+
+Conversations can be started manually:
+
+[source,java]
+----
+talkativebot.play(new SaleConversation(talkativebot, consoleAddress));
+----
+
+Or triggered automatically via `ConversationStartResolver` when inbound messages do not match a pending interaction.
+
+=== Topics
+
+Topics are the atomic units of dialogue. Each topic:
+
+* Declares metadata via `@Topic` (`key`, `name`, `description`, `conversation`, `canReplay`, `order`, `next`)
+* Implements `doPlay(Facts)` to ask questions or perform side effects
+* Handles answers in `onInput(SelectedAnswer)`
+* Uses `canPlayWithFacts(Facts)` for conditional branching
+
+Extend `AbstractTopic` (starter module) for helpers: `ask()`, `fact()`, `close()`, closure fact management.
+
+**Topic registration:** `TopicScanner.scan(conversationType)` returns descriptors; instances are created via `TopicFactory` and registered in a `LinkedHashMap` keyed by topic key.
+
+**Default key:** decapitalized simple class name when `@Topic.key` is blank.
+
+=== Topic progression: `next` vs `order`
+
+[cols="1,3", options="header"]
+|===
+| Mechanism | Behavior
+
+| `order` + `key`
+| Topics are registered sorted by `order`, then `key`. Initial selection and fallback use the first *playable* topic in that order.
+
+| `next`
+| After the current topic, if `getNextTopicKey()` is set and the target topic `isPlayable(facts)`, that topic runs next — *before* order-based fallback.
+
+| `canReplay`
+| When `true`, a closed topic (`__talkative.topic.<key>.closed` fact set) can play again.
+
+| `canPlayWithFacts`
+| Override to gate topics on business facts (e.g. skip shipping when pickup is selected).
+|===
+
+`order` and `next` work together: `next` selects the immediate successor when the target topic is playable; `order` governs registration, the first topic when none is current, and fallback when `next` is unset, invalid, or not playable.
+
+=== Channels
+
+Channels adapt transport to the framework's message model:
+
+* `InputChannel` — `start(InputMessageHandler)`, `stop()`; pushes `IncomingMessage` to the bot
+* `OutputChannel` — `supports(ConversationAddress)`, `send(OutgoingMessage)`
+* `InputChannelLifecycle` (starter) — `SmartLifecycle` that starts all `InputChannel` beans when `channels.enabled=true`
+
+Built-in and starter-provided channels:
+
+[cols="2,3", options="header"]
+|===
+| Implementation | Channel id / notes
+
+| `ConsoleInputChannel` / `ConsoleOutputChannel`
+| `console` — stdin/stdout for local development
+
+| `SpringCloudStreamOutputChannel`
+| `spring-cloud-stream` or `stream` — via `StreamBridge`
+
+| `SpringCloudStreamInputConsumer`
+| `Consumer<IncomingMessage>` bean — *not* an `InputChannel`; wired manually
+|===
+
+Spring Cloud Stream is not auto-registered; applications declare stream beans explicitly (see `example-stream-redis/agent-one`).
+
+=== Questions and answers
+
+`Question` supports text and choice types (`QuestionType`). Choice questions use `Option` (value + display text).
+`SelectedAnswer` wraps the matched option (if any), raw text, and the original `IncomingMessage`.
+
