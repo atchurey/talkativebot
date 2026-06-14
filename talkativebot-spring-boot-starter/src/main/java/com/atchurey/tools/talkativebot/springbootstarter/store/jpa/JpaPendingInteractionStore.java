@@ -1,7 +1,9 @@
 package com.atchurey.tools.talkativebot.springbootstarter.store.jpa;
 
 import com.atchurey.tools.talkativebot.core.channel.ConversationAddress;
+import com.atchurey.tools.talkativebot.core.channel.ConversationScope;
 import com.atchurey.tools.talkativebot.core.channel.PendingInteraction;
+import com.atchurey.tools.talkativebot.core.channel.PendingInteractionKey;
 import com.atchurey.tools.talkativebot.core.channel.PendingInteractionStore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,7 +34,16 @@ public class JpaPendingInteractionStore implements PendingInteractionStore {
     @Override
     @Transactional
     public void save(PendingInteraction interaction) {
-        saveInternal(interaction, null);
+        save(interaction, ConversationScope.DEFAULT);
+    }
+
+    @Override
+    @Transactional
+    public void save(
+            PendingInteraction interaction,
+            ConversationScope scope
+    ) {
+        saveInternal(interaction, scope, null);
     }
 
     @Override
@@ -42,14 +53,37 @@ public class JpaPendingInteractionStore implements PendingInteractionStore {
                 ? null
                 : Instant.now().plus(ttl);
 
-        saveInternal(interaction, expiresAt);
+        saveInternal(interaction, ConversationScope.DEFAULT, expiresAt);
+    }
+
+    @Override
+    @Transactional
+    public void save(
+            PendingInteraction interaction,
+            ConversationScope scope,
+            Duration ttl
+    ) {
+        Instant expiresAt = ttl == null || ttl.isZero() || ttl.isNegative()
+                ? null
+                : Instant.now().plus(ttl);
+
+        saveInternal(interaction, scope, expiresAt);
     }
 
     @Override
     public Optional<PendingInteraction> findByAddress(ConversationAddress address) {
+        return findByAddress(address, ConversationScope.DEFAULT);
+    }
+
+    @Override
+    public Optional<PendingInteraction> findByAddress(
+            ConversationAddress address,
+            ConversationScope scope
+    ) {
         Objects.requireNonNull(address, "address must not be null");
 
-        return repository.findByAddressKey(address.persistenceKey())
+        String key = PendingInteractionKey.from(address, scope);
+        return repository.findByAddressKey(key)
                 .filter(entity -> !isExpired(entity))
                 .map(this::toPendingInteraction);
     }
@@ -57,11 +91,21 @@ public class JpaPendingInteractionStore implements PendingInteractionStore {
     @Override
     @Transactional
     public void deleteByAddress(ConversationAddress address) {
+        deleteByAddress(address, ConversationScope.DEFAULT);
+    }
+
+    @Override
+    @Transactional
+    public void deleteByAddress(
+            ConversationAddress address,
+            ConversationScope scope
+    ) {
         Objects.requireNonNull(address, "address must not be null");
 
-        repository.deleteByAddressKey(address.persistenceKey());
+        String key = PendingInteractionKey.from(address, scope);
+        repository.deleteByAddressKey(key);
 
-        logger.debug("Deleted pending interaction from database for {}", address.persistenceKey());
+        logger.debug("Deleted pending interaction from database for {}", key);
     }
 
     @Transactional
@@ -69,16 +113,23 @@ public class JpaPendingInteractionStore implements PendingInteractionStore {
         repository.deleteByExpiresAtBefore(Instant.now());
     }
 
-    private void saveInternal(PendingInteraction interaction, Instant expiresAt) {
+    private void saveInternal(
+            PendingInteraction interaction,
+            ConversationScope scope,
+            Instant expiresAt
+    ) {
         Objects.requireNonNull(interaction, "interaction must not be null");
 
         ConversationAddress address = interaction.getAddress();
+        ConversationScope resolvedScope = scope == null ? ConversationScope.DEFAULT : scope;
+        String key = PendingInteractionKey.from(address, resolvedScope);
 
-        PendingInteractionEntity entity = repository.findByAddressKey(address.persistenceKey())
+        PendingInteractionEntity entity = repository.findByAddressKey(key)
                 .orElseGet(PendingInteractionEntity::new);
 
         entity.setId(interaction.getId());
-        entity.setAddressKey(address.persistenceKey());
+        entity.setAddressKey(key);
+        entity.setScope(resolvedScope.value());
         entity.setChannel(address.getChannel());
         entity.setUserId(address.getUserId());
         entity.setSessionId(address.getSessionId());
@@ -95,7 +146,7 @@ public class JpaPendingInteractionStore implements PendingInteractionStore {
         logger.debug(
                 "Saved pending interaction {} in database for {}",
                 interaction.getId(),
-                address.persistenceKey()
+                key
         );
     }
 

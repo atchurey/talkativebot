@@ -119,6 +119,9 @@ talkativebot-parent
 | `ConversationStartRegistry`
 | Resolve new conversations when no pending interaction exists
 
+| `ConversationMessageRouter`
+| Choose address, scope, and resume/start mode before pending interaction lookup
+
 | `ConversationRuntimeRegistry`
 | Per-conversation-type shared resources (HTTP clients, repositories)
 |===
@@ -127,7 +130,7 @@ Key public operations:
 
 * `play(Conversation)` — hydrate runtime, invoke `conversation.play()`
 * `ask(conversation, topic, question)` — save `PendingInteraction`, send `OutgoingMessage.question(...)`
-* `handle(IncomingMessage)` — resume pending interaction or start via `ConversationStartResolver`
+* `handle(IncomingMessage)` — route inbound message, resume pending interaction, or start via `ConversationStartResolver`
 
 === Conversation engine
 
@@ -243,12 +246,15 @@ The joke factory demo (`JokeFactoryConversationRuntimeInitializer`) registers a 
 └─────────┬─────────┘     └──────────────┬───────────────┘
           │                                │
           └──────────────┬─────────────────┘
-                         ▼
-              TalkativeBot.handle(IncomingMessage)
-                         │
-         ┌───────────────┴────────────────┐
-         │                                │
-    pending found?                   no pending
+	                         ▼
+	              TalkativeBot.handle(IncomingMessage)
+	                         │
+	                 ConversationMessageRouter
+	                 selects address + scope + mode
+	                         │
+	         ┌───────────────┴────────────────┐
+	         │                                │
+	    scoped pending found?            no scoped pending
          │                                │
          ▼                                ▼
   resumeConversation()      ConversationStartRegistry.resolve()
@@ -265,7 +271,7 @@ The joke factory demo (`JokeFactoryConversationRuntimeInitializer`) registers a 
 
 === Resume sequence
 
-When a `PendingInteraction` exists for the message's `ConversationAddress.persistenceKey()`:
+When a `PendingInteraction` exists for the routed `ConversationAddress` and `ConversationScope`:
 
 . Load interaction from store (memory, Redis, or database)
 . Recreate conversation via `ConversationFactory`
@@ -293,6 +299,81 @@ For example, built-in output channels support values such as `console`, `spring-
 New integrations should not use it for workflow lanes or platform thread ids.
 Platform-specific conversation, session, or message ids belong in `IncomingMessage.channel` (`ChannelInfo`), and first-class workflow separation should be handled by a scoped conversation model.
 Provider-specific surfaces such as Facebook Messenger, WhatsApp, or web checkout should also be described in `ChannelInfo` unless the application has registered matching TalkativeBot channels for those values.
+
+=== Conversation scope
+
+`ConversationScope` names the internal workflow lane that should handle a message.
+It is deliberately separate from `ConversationAddress`:
+
+[source]
+----
+ConversationAddress = where/who the message came from
+ConversationScope   = which internal workflow should handle it
+----
+
+`ConversationScope.DEFAULT` is available for simple bots that only run one workflow per address.
+Custom scopes are generic strings such as `checkout`, `payment`, or `order-status`; TalkativeBot core does not prescribe application-specific names.
+
+Pending interaction storage is scope-aware.
+The default scope keeps the historical address key, while custom scopes allow multiple workflow lanes to wait for replies for the same external address.
+
+=== Conversation routing
+
+`ConversationMessageRouter` runs before pending interaction lookup.
+It returns a `ConversationRoute` made of:
+
+* `ConversationAddress` — the external address TalkativeBot should use for lookup and replies
+* `ConversationScope` — the internal workflow lane for that address
+* `ConversationRouteMode` — whether to resume, start, or reject
+
+The default router preserves existing behavior: use the incoming address, use `ConversationScope.DEFAULT`, and resume a pending interaction when one exists or start a conversation otherwise.
+
+Applications can provide a custom Spring bean or constructor argument when the same user/address can have parallel workflows.
+For example, `/status` can be routed into an `order-status` scope without consuming the pending checkout question, while normal text continues to resume the checkout scope.
+
+Route modes:
+
+[cols="1,3", options="header"]
+|===
+| Mode | Behavior
+
+| `RESUME_OR_START`
+| Resume a pending interaction for the selected address/scope, or start a new conversation when none exists.
+
+| `RESUME_ONLY`
+| Resume only if a pending interaction exists. If not, the message is rejected through the normal no-conversation-started path.
+
+| `START_ONLY`
+| Start a new conversation without checking or consuming pending interactions for the address.
+
+| `REJECT`
+| Reject before resume/start resolution.
+|===
+
+Routers receive a `ConversationRoutingContext` so they can inspect pending interactions by address and scope before making a decision.
+The context is read-only; the router decides where the message belongs, while TalkativeBot still owns persistence changes.
+
+=== Scoped start resolvers
+
+The router decides the scope for an inbound message.
+Start resolvers decide which conversation, if any, should start inside that scope.
+
+Use `ConversationMessageRouter` for message-level routing decisions, such as detecting that `/status` belongs to an `order-status` lane.
+Use `ScopedConversationStartResolver` when a start resolver should only be considered for specific lanes:
+
+[source,java]
+----
+public interface ScopedConversationStartResolver extends ConversationStartResolver {
+    boolean supportsScope(ConversationScope scope);
+}
+----
+
+For default-scope bots, existing `ConversationStartResolver` implementations continue to work.
+When TalkativeBot starts a non-default scope, unscoped resolvers are not considered.
+This avoids starting the wrong conversation in the right scope just because an older resolver appears first in resolver order.
+
+Resolver order remains deterministic.
+TalkativeBot first filters resolvers by the selected scope, then evaluates the remaining resolvers in their configured order.
 
 === Incoming message envelope
 
@@ -567,6 +648,24 @@ A pending interaction captures everything needed to resume after an async human 
 * `Facts` snapshot
 * Timestamps and TTL metadata
 
+Pending interaction keys are scope-aware.
+The default scope keeps the legacy address key so existing persisted interactions can still be found:
+
+[source]
+----
+scope = default
+key   = address.persistenceKey()
+----
+
+Non-default scopes append the scope value:
+
+[source]
+----
+key = address.persistenceKey() + "|scope:" + scope
+----
+
+This allows multiple internal workflow lanes to wait for replies for the same external address.
+
 === Store implementations
 
 [cols="2,2,3", options="header"]
@@ -575,22 +674,22 @@ A pending interaction captures everything needed to resume after an async human 
 
 | In-memory
 | `memory` (default)
-| `InMemoryPendingInteractionStore` — `ConcurrentHashMap`, expiry checked on read
+| `InMemoryPendingInteractionStore` — scope-aware `ConcurrentHashMap`, expiry checked on read
 
 | Redis
 | `redis`
-| `RedisPendingInteractionStore` — key `talkativebot:pending-interaction:{persistenceKey}`, Redis TTL
+| `RedisPendingInteractionStore` — key `talkativebot:pending-interaction:{pendingInteractionKey}`, Redis TTL
 
 | Database
 | `database`
-| `JpaPendingInteractionStore` — `PendingInteractionEntity` with JSON payload and `expiresAt`
+| `JpaPendingInteractionStore` — `PendingInteractionEntity` with scoped `addressKey`, JSON payload, and `expiresAt`
 |===
 
 Misconfiguration is fail-fast: selecting `redis` or `database` without the required beans throws at startup via conditional failure beans.
 
 *Limitations:*
 
-* One pending interaction per `persistenceKey()` — no stacked questions
+* One pending interaction per address/scope pair — no stacked questions inside the same workflow lane
 * JPA `deleteExpired()` exists but is not scheduled automatically
 * Ongoing or persisted conversations break if conversation classes are renamed
 
@@ -614,6 +713,7 @@ TalkativeBotConsoleAutoConfiguration
 * `TalkativeBot` bean
 * `SpringTopicScanner`, `SpringTopicFactory`
 * `ReflectionConversationFactory`
+* `DefaultConversationMessageRouter`
 * `OutputChannelRegistry`, `ConversationStartRegistry`
 * `InputChannelLifecycle` when channels enabled
 * Store bean selected by `pending-interaction.store`
@@ -721,7 +821,7 @@ atchurey.tools.talkativebot.channels.console-enabled=true
 | `@Topic`
 
 | `core.channel`
-| `InputChannel`, `OutputChannel`, `IncomingMessage`, `OutgoingMessage`, `ConversationAddress`, `ChannelInfo`, `ExternalIdentity`, `ReferralContext`, `PendingInteraction`, `PendingInteractionStore`, `ConversationStartResolver`, registries
+| `InputChannel`, `OutputChannel`, `IncomingMessage`, `OutgoingMessage`, `ConversationAddress`, `ConversationScope`, `ChannelInfo`, `ExternalIdentity`, `ReferralContext`, `PendingInteraction`, `PendingInteractionStore`, `ConversationStartResolver`, `ScopedConversationStartResolver`, registries
 
 | `core.channel.console`
 | `ConsoleInputChannel`, `ConsoleOutputChannel`
@@ -777,6 +877,9 @@ Developers customize TalkativeBot by implementing:
 
 | `ConversationStartResolver`
 | Map inbound text/commands to `ConversationStartRequest`
+
+| `ScopedConversationStartResolver`
+| Limit a start resolver to selected conversation scopes
 
 | `ConversationRuntimeInitializer`
 | Shared WebClients, repositories per conversation type
