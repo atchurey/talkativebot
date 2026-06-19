@@ -7,7 +7,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import lombok.Builder;
 import lombok.Getter;
 
 import java.io.Serializable;
@@ -39,7 +38,6 @@ public class OutgoingMessage implements Serializable {
     private final String rawPayloadReference;
 
     @JsonCreator
-    @Builder(toBuilder = true)
     public OutgoingMessage(
             @JsonProperty("id") String id,
             @JsonProperty("address") ConversationAddress address,
@@ -92,6 +90,25 @@ public class OutgoingMessage implements Serializable {
         );
     }
 
+    public static OutgoingMessageBuilder builder() {
+        return new OutgoingMessageBuilder();
+    }
+
+    public OutgoingMessageBuilder toBuilder() {
+        return OutgoingMessage.builder()
+                .id(id)
+                .address(address)
+                .question(question)
+                .text(text)
+                .createdAt(createdAt)
+                .eventType(eventType)
+                .channel(channel)
+                .externalIdentity(externalIdentity)
+                .referral(referral)
+                .metadata(metadata)
+                .rawPayloadReference(rawPayloadReference);
+    }
+
     public static OutgoingMessage question(ConversationAddress address, Question question) {
         return new OutgoingMessage(
                 UUID.randomUUID().toString(),
@@ -134,6 +151,94 @@ public class OutgoingMessage implements Serializable {
                 .referral(incoming.getReferral())
                 .metadata(incoming.getMetadata())
                 .rawPayloadReference(incoming.getRawPayloadReference());
+    }
+
+    public static class OutgoingMessageBuilder {
+        private String id;
+        private ConversationAddress address;
+        private Question question;
+        private String text;
+        private Instant createdAt;
+        private String eventType;
+        private ChannelInfo channel;
+        private ExternalIdentity externalIdentity;
+        private ReferralContext referral;
+        private Map<String, Serializable> metadata;
+        private String rawPayloadReference;
+
+        private OutgoingMessageBuilder() {
+        }
+
+        public OutgoingMessageBuilder id(String id) {
+            this.id = id;
+            return this;
+        }
+
+        public OutgoingMessageBuilder address(ConversationAddress address) {
+            this.address = address;
+            return this;
+        }
+
+        public OutgoingMessageBuilder question(Question question) {
+            this.question = question;
+            return this;
+        }
+
+        public OutgoingMessageBuilder text(String text) {
+            this.text = text;
+            return this;
+        }
+
+        public OutgoingMessageBuilder createdAt(Instant createdAt) {
+            this.createdAt = createdAt;
+            return this;
+        }
+
+        public OutgoingMessageBuilder eventType(String eventType) {
+            this.eventType = eventType;
+            return this;
+        }
+
+        public OutgoingMessageBuilder channel(ChannelInfo channel) {
+            this.channel = channel;
+            return this;
+        }
+
+        public OutgoingMessageBuilder externalIdentity(ExternalIdentity externalIdentity) {
+            this.externalIdentity = externalIdentity;
+            return this;
+        }
+
+        public OutgoingMessageBuilder referral(ReferralContext referral) {
+            this.referral = referral;
+            return this;
+        }
+
+        public OutgoingMessageBuilder metadata(Map<String, Serializable> metadata) {
+            this.metadata = metadata;
+            return this;
+        }
+
+        public OutgoingMessageBuilder rawPayloadReference(String rawPayloadReference) {
+            this.rawPayloadReference = rawPayloadReference;
+            return this;
+        }
+
+        public OutgoingMessage build() {
+            return new OutgoingMessage(
+                    id,
+                    address,
+                    question,
+                    text,
+                    createdAt,
+                    eventType,
+                    channel,
+                    externalIdentity,
+                    referral,
+                    metadata,
+                    rawPayloadReference
+            );
+        }
     }
 
     @JsonIgnore
