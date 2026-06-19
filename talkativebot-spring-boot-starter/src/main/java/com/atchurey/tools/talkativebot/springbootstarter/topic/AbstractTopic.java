@@ -1,6 +1,7 @@
 package com.atchurey.tools.talkativebot.springbootstarter.topic;
 
 import com.atchurey.tools.talkativebot.core.bot.TalkativeBot;
+import com.atchurey.tools.talkativebot.core.channel.OutgoingMessage;
 import com.atchurey.tools.talkativebot.core.channel.SelectedAnswer;
 import com.atchurey.tools.talkativebot.core.conversation.AbstractConversation;
 import com.atchurey.tools.talkativebot.core.conversation.Conversation;
@@ -238,10 +239,25 @@ public abstract class AbstractTopic implements ConversationTopic, ConversationAw
         );
     }
 
+    protected CompletableFuture<Void> ask(OutgoingMessage message) {
+        return getBot().ask(
+                conversation,
+                this,
+                message
+        );
+    }
+
     protected CompletableFuture<Void> conclude(String text) {
         return getBot().conclude(
                 conversation,
                 text
+        );
+    }
+
+    protected CompletableFuture<Void> conclude(OutgoingMessage message) {
+        return getBot().conclude(
+                conversation,
+                message
         );
     }
 
