@@ -127,27 +127,36 @@ public class TalkativeBot implements InputMessageHandler {
         return conversation.play();
     }
 
-    /**
-     * Sends a question and remembers enough conversation state (pending interaction) to handle the user's next answer.
-     * Use this when the conversation should pause here and continue/resume after
-     * the user replies.
-     */
     public CompletableFuture<Void> ask(
             Conversation<?> conversation,
             ConversationTopic topic,
             Question question) {
+        return ask(conversation, topic, OutgoingMessage.question(conversation.getAddress(), question));
+    }
+
+    /**
+     * Sends an enriched question and remembers conversation state.
+     */
+    public CompletableFuture<Void> ask(
+            Conversation<?> conversation,
+            ConversationTopic topic,
+            OutgoingMessage message) {
+        Objects.requireNonNull(message, "message must not be null");
+        if (message.getQuestion() == null) {
+            throw new IllegalArgumentException("OutgoingMessage must contain a question for ask()");
+        }
 
         PendingInteraction interaction = new PendingInteraction(
                 conversation.getAddress(),
                 conversation.getClass().getName(),
                 topic.getKey(),
-                question,
+                message.getQuestion(),
                 conversation.getFacts()
         );
 
         pendingInteractionStore.save(interaction, activeScope.get(), pendingInteractionTtl);
 
-        return outputChannelRegistry.send(OutgoingMessage.question(conversation.getAddress(), question));
+        return outputChannelRegistry.send(message);
     }
 
     /**
@@ -158,10 +167,19 @@ public class TalkativeBot implements InputMessageHandler {
     public CompletableFuture<Void> conclude(
             Conversation<?> conversation,
             String text) {
-        Objects.requireNonNull(conversation, "conversation must not be null");
-        Objects.requireNonNull(text, "text must not be null");
+        return conclude(conversation, OutgoingMessage.text(conversation.getAddress(), text));
+    }
 
-        CompletableFuture<Void> sent = outputChannelRegistry.send(OutgoingMessage.text(conversation.getAddress(), text));
+    /**
+     * Sends a final enriched message for the conversation and closes it.
+     */
+    public CompletableFuture<Void> conclude(
+            Conversation<?> conversation,
+            OutgoingMessage message) {
+        Objects.requireNonNull(conversation, "conversation must not be null");
+        Objects.requireNonNull(message, "message must not be null");
+
+        CompletableFuture<Void> sent = outputChannelRegistry.send(message);
         conversation.abandon();
         return sent;
     }

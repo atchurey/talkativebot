@@ -16,6 +16,7 @@ import org.mockito.ArgumentCaptor;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -348,6 +349,33 @@ class TalkativeBotTest {
         verify(startRegistry, never()).resolve(statusMessage, ConversationScope.DEFAULT);
         assertThat(store.findByAddress(address)).isEmpty();
         assertThat(store.findByAddress(address, statusScope)).isEmpty();
+    }
+
+    @Test
+    void shouldAskEnrichedQuestion() {
+        ConversationAddress address = new ConversationAddress("test", "user123", null, null);
+        TestConversation conversation = new TestConversation(bot, address);
+        BaseTopic topic = new StartTopic(conversation);
+
+        OutgoingMessage enrichedMessage = OutgoingMessage.question(address, Question.text("Enriched?"))
+                .toBuilder()
+                .eventType("special.event")
+                .metadata(Map.of("key", "value"))
+                .build();
+
+        bot.ask(conversation, topic, enrichedMessage).join();
+
+        ArgumentCaptor<OutgoingMessage> messageCaptor = ArgumentCaptor.forClass(OutgoingMessage.class);
+        verify(outputChannelRegistry).send(messageCaptor.capture());
+
+        OutgoingMessage sent = messageCaptor.getValue();
+        assertThat(sent.getQuestion().getText()).isEqualTo("Enriched?");
+        assertThat(sent.getEventType()).isEqualTo("special.event");
+        assertThat(sent.getMetadata()).containsEntry("key", "value");
+
+        // Interaction should still be saved with the question
+        assertThat(store.findByAddress(address)).isPresent();
+        assertThat(store.findByAddress(address).get().getQuestion().getText()).isEqualTo("Enriched?");
     }
 
     private TalkativeBot createBot(ConversationMessageRouter messageRouter) {
