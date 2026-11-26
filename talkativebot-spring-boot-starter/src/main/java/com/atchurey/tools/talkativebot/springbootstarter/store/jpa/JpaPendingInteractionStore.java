@@ -124,9 +124,16 @@ public class JpaPendingInteractionStore implements PendingInteractionStore {
         ConversationScope resolvedScope = scope == null ? ConversationScope.DEFAULT : scope;
         String key = PendingInteractionKey.from(address, resolvedScope);
 
-        PendingInteractionEntity entity = repository.findByAddressKey(key)
-                .orElseGet(PendingInteractionEntity::new);
+        String payloadJson = toJson(interaction);
+        Optional<PendingInteractionEntity> existing = repository.findByAddressKey(key);
+        if (existing.isPresent()) {
+            repository.delete(existing.get());
+            // Flush before insertion: Hibernate otherwise queues inserts ahead of deletes,
+            // violating the unique address key. Both operations remain in the save transaction.
+            repository.flush();
+        }
 
+        PendingInteractionEntity entity = new PendingInteractionEntity();
         entity.setId(interaction.getId());
         entity.setAddressKey(key);
         entity.setScope(resolvedScope.value());
@@ -136,7 +143,7 @@ public class JpaPendingInteractionStore implements PendingInteractionStore {
         entity.setConversationId(address.getConversationId());
         entity.setConversationType(interaction.getConversationType());
         entity.setCurrentTopicKey(interaction.getCurrentTopicKey());
-        entity.setPayloadJson(toJson(interaction));
+        entity.setPayloadJson(payloadJson);
         entity.setCreatedAt(interaction.getCreatedAt());
         entity.setUpdatedAt(interaction.getUpdatedAt());
         entity.setExpiresAt(expiresAt);
